@@ -34,7 +34,7 @@ test "projectile playground" {
     var i: usize = 0;
     while (p.position.y >= 0) {
         p = tick(e, p);
-        std.debug.print("tick({d}): projectile at position({d:.2}, {d:.2}, {d:.2})\n", .{ i, p.position.x, p.position.y, p.position.z });
+        // std.debug.print("tick({d}): projectile at position({d:.2}, {d:.2}, {d:.2})\n", .{ i, p.position.x, p.position.y, p.position.z });
         i += 1;
     }
 }
