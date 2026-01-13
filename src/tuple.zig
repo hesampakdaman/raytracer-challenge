@@ -5,56 +5,73 @@ const core = @import("core.zig");
 const EPSILON = core.EPSILON;
 
 pub const Tuple = struct {
-    x: f64,
-    y: f64,
-    z: f64,
-    w: f64,
+    data: [4]f64,
+
+    pub fn init(x_val: f64, y_val: f64, z_val: f64, w_val: f64) Tuple {
+        return .{ .data = .{ x_val, y_val, z_val, w_val } };
+    }
+
+    pub fn x(self: Tuple) f64 {
+        return self.data[0];
+    }
+
+    pub fn y(self: Tuple) f64 {
+        return self.data[1];
+    }
+
+    pub fn z(self: Tuple) f64 {
+        return self.data[2];
+    }
+
+    pub fn w(self: Tuple) f64 {
+        return self.data[3];
+    }
 
     pub fn isPoint(self: Tuple) bool {
-        return math.approxEqAbs(f64, self.w, 1.0, EPSILON);
+        return math.approxEqAbs(f64, self.w(), 1.0, EPSILON);
     }
 
     pub fn isVector(self: Tuple) bool {
-        return math.approxEqAbs(f64, self.w, 0.0, EPSILON);
+        return math.approxEqAbs(f64, self.w(), 0.0, EPSILON);
     }
 
     pub fn approxEq(self: Tuple, other: Tuple) bool {
-        const x_ok = math.approxEqAbs(f64, self.x, other.x, EPSILON);
-        const y_ok = math.approxEqAbs(f64, self.y, other.y, EPSILON);
-        const z_ok = math.approxEqAbs(f64, self.z, other.z, EPSILON);
-        const w_ok = math.approxEqAbs(f64, self.w, other.w, EPSILON);
+        const x_ok = math.approxEqAbs(f64, self.x(), other.x(), EPSILON);
+        const y_ok = math.approxEqAbs(f64, self.y(), other.y(), EPSILON);
+        const z_ok = math.approxEqAbs(f64, self.z(), other.z(), EPSILON);
+        const w_ok = math.approxEqAbs(f64, self.w(), other.w(), EPSILON);
 
         return x_ok and y_ok and z_ok and w_ok;
     }
 
     pub fn add(self: Tuple, other: Tuple) Tuple {
-        return tuple(
-            self.x + other.x,
-            self.y + other.y,
-            self.z + other.z,
-            self.w + other.w,
+        return Tuple.init(
+            self.x() + other.x(),
+            self.y() + other.y(),
+            self.z() + other.z(),
+            self.w() + other.w(),
         );
     }
 
     pub fn sub(self: Tuple, other: Tuple) Tuple {
-        return tuple(
-            self.x - other.x,
-            self.y - other.y,
-            self.z - other.z,
-            self.w - other.w,
+        return Tuple.init(
+            self.x() - other.x(),
+            self.y() - other.y(),
+            self.z() - other.z(),
+            self.w() - other.w(),
         );
     }
 
     pub fn negate(self: Tuple) Tuple {
-        return tuple(-self.x, -self.y, -self.z, -self.w);
+        return Tuple.init(-self.x(), -self.y(), -self.z(), -self.w());
     }
 
     pub fn mul(self: Tuple, m: f64) Tuple {
-        return tuple(
-            m * self.x,
-            m * self.y,
-            m * self.z,
-            m * self.w,
+        return Tuple.init(
+            m * self.x(),
+            m * self.y(),
+            m * self.z(),
+            m * self.w(),
         );
     }
 
@@ -63,10 +80,10 @@ pub const Tuple = struct {
     }
 
     pub fn magnitude(self: Tuple) f64 {
-        return math.sqrt(self.x * self.x +
-            self.y * self.y +
-            self.z * self.z +
-            self.w * self.w);
+        return math.sqrt(self.x() * self.x() +
+            self.y() * self.y() +
+            self.z() * self.z() +
+            self.w() * self.w());
     }
 
     pub fn normalize(self: Tuple) Tuple {
@@ -74,55 +91,51 @@ pub const Tuple = struct {
     }
 
     pub fn dot(self: Tuple, other: Tuple) f64 {
-        return self.x * other.x +
-            self.y * other.y +
-            self.z * other.z +
-            self.w * other.w;
+        return self.x() * other.x() +
+            self.y() * other.y() +
+            self.z() * other.z() +
+            self.w() * other.w();
     }
 
     pub fn cross(self: Tuple, other: Tuple) Tuple {
         return vector(
-            self.y * other.z - self.z * other.y,
-            self.z * other.x - self.x * other.z,
-            self.x * other.y - self.y * other.x,
+            self.y() * other.z() - self.z() * other.y(),
+            self.z() * other.x() - self.x() * other.z(),
+            self.x() * other.y() - self.y() * other.x(),
         );
     }
 };
 
-pub fn tuple(x: f64, y: f64, z: f64, w: f64) Tuple {
-    return Tuple{ .x = x, .y = y, .z = z, .w = w };
-}
-
 pub fn point(x: f64, y: f64, z: f64) Tuple {
-    return Tuple{ .x = x, .y = y, .z = z, .w = 1 };
+    return Tuple.init(x, y, z, 1);
 }
 
 pub fn vector(x: f64, y: f64, z: f64) Tuple {
-    return Tuple{ .x = x, .y = y, .z = z, .w = 0 };
+    return Tuple.init(x, y, z, 0);
 }
 
 test "A tuple with w=1.0 is a point" {
     // Given
-    const a = tuple(4.3, -4.2, 3.1, 1.0);
+    const a = Tuple.init(4.3, -4.2, 3.1, 1.0);
 
     // Then
-    try std.testing.expectApproxEqAbs(4.3, a.x, EPSILON);
-    try std.testing.expectApproxEqAbs(-4.2, a.y, EPSILON);
-    try std.testing.expectApproxEqAbs(3.1, a.z, EPSILON);
-    try std.testing.expectApproxEqAbs(1.0, a.w, EPSILON);
+    try std.testing.expectApproxEqAbs(4.3, a.x(), EPSILON);
+    try std.testing.expectApproxEqAbs(-4.2, a.y(), EPSILON);
+    try std.testing.expectApproxEqAbs(3.1, a.z(), EPSILON);
+    try std.testing.expectApproxEqAbs(1.0, a.w(), EPSILON);
     try std.testing.expect(a.isPoint());
     try std.testing.expect(!a.isVector());
 }
 
 test "A tuple with w=0 is a vector" {
     // Given
-    const a = tuple(4.3, -4.2, 3.1, 0.0);
+    const a = Tuple.init(4.3, -4.2, 3.1, 0.0);
 
     // Then
-    try std.testing.expectApproxEqAbs(4.3, a.x, EPSILON);
-    try std.testing.expectApproxEqAbs(-4.2, a.y, EPSILON);
-    try std.testing.expectApproxEqAbs(3.1, a.z, EPSILON);
-    try std.testing.expectApproxEqAbs(0.0, a.w, EPSILON);
+    try std.testing.expectApproxEqAbs(4.3, a.x(), EPSILON);
+    try std.testing.expectApproxEqAbs(-4.2, a.y(), EPSILON);
+    try std.testing.expectApproxEqAbs(3.1, a.z(), EPSILON);
+    try std.testing.expectApproxEqAbs(0.0, a.w(), EPSILON);
     try std.testing.expect(!a.isPoint());
     try std.testing.expect(a.isVector());
 }
@@ -132,7 +145,7 @@ test "point() creates tuples with w=1" {
     const p = point(4, -4, 3);
 
     // Then
-    try std.testing.expect(p.approxEq(tuple(4, -4, 3, 1)));
+    try std.testing.expect(p.approxEq(Tuple.init(4, -4, 3, 1)));
 }
 
 test "vector() creates tuples with w=0" {
@@ -140,16 +153,16 @@ test "vector() creates tuples with w=0" {
     const v = vector(4, -4, 3);
 
     // Then
-    try std.testing.expect(v.approxEq(tuple(4, -4, 3, 0)));
+    try std.testing.expect(v.approxEq(Tuple.init(4, -4, 3, 0)));
 }
 
 test "Adding two tuples" {
     // Given
-    const a1 = tuple(3, -2, 5, 1);
-    const a2 = tuple(-2, 3, 1, 0);
+    const a1 = Tuple.init(3, -2, 5, 1);
+    const a2 = Tuple.init(-2, 3, 1, 0);
 
     // Then
-    try std.testing.expect(a1.add(a2).approxEq(tuple(1, 1, 6, 1)));
+    try std.testing.expect(a1.add(a2).approxEq(Tuple.init(1, 1, 6, 1)));
 }
 
 test "Subtracting two points" {
@@ -190,34 +203,34 @@ test "Subtracting a vector from the zero vector" {
 
 test "Negating a tuple" {
     // Given
-    const a = tuple(1, -2, 3, -4);
+    const a = Tuple.init(1, -2, 3, -4);
 
     // Then
-    try std.testing.expect(a.negate().approxEq(tuple(-1, 2, -3, 4)));
+    try std.testing.expect(a.negate().approxEq(Tuple.init(-1, 2, -3, 4)));
 }
 
 test "Multiplying a tuple by a scalar" {
     // Given
-    const a = tuple(1, -2, 3, -4);
+    const a = Tuple.init(1, -2, 3, -4);
 
     // Then
-    try std.testing.expect(a.mul(3.5).approxEq(tuple(3.5, -7, 10.5, -14)));
+    try std.testing.expect(a.mul(3.5).approxEq(Tuple.init(3.5, -7, 10.5, -14)));
 }
 
 test "Multiplying a tuple by a fraction" {
     // Given
-    const a = tuple(1, -2, 3, -4);
+    const a = Tuple.init(1, -2, 3, -4);
 
     // Then
-    try std.testing.expect(a.mul(0.5).approxEq(tuple(0.5, -1, 1.5, -2)));
+    try std.testing.expect(a.mul(0.5).approxEq(Tuple.init(0.5, -1, 1.5, -2)));
 }
 
 test "Dividing a tuple by a scalar" {
     // Given
-    const a = tuple(1, -2, 3, -4);
+    const a = Tuple.init(1, -2, 3, -4);
 
     // Then
-    try std.testing.expect(a.div(2).approxEq(tuple(0.5, -1, 1.5, -2)));
+    try std.testing.expect(a.div(2).approxEq(Tuple.init(0.5, -1, 1.5, -2)));
 }
 
 test "Computing the magnitude of vector(1, 0, 0)" {
