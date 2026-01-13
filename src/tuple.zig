@@ -15,11 +15,11 @@ const Tuple = struct {
         return std.math.approxEqAbs(f64, self.w, 0.0, EPSILON);
     }
 
-    pub fn approxEq(self: Tuple, other: Tuple, eps: f64) bool {
-        const x_ok = std.math.approxEqAbs(f64, self.x, other.x, eps);
-        const y_ok = std.math.approxEqAbs(f64, self.y, other.y, eps);
-        const z_ok = std.math.approxEqAbs(f64, self.z, other.z, eps);
-        const w_ok = std.math.approxEqAbs(f64, self.w, other.w, eps);
+    pub fn approxEq(self: Tuple, other: Tuple) bool {
+        const x_ok = std.math.approxEqAbs(f64, self.x, other.x, EPSILON);
+        const y_ok = std.math.approxEqAbs(f64, self.y, other.y, EPSILON);
+        const z_ok = std.math.approxEqAbs(f64, self.z, other.z, EPSILON);
+        const w_ok = std.math.approxEqAbs(f64, self.w, other.w, EPSILON);
 
         return x_ok and y_ok and z_ok and w_ok;
     }
@@ -68,7 +68,7 @@ test "Scenario: point() creates tuples with w=1" {
     const p = point(4, -4, 3);
 
     // Then
-    try std.testing.expect(p.approxEq(tuple(4, -4, 3, 1), EPSILON));
+    try std.testing.expect(p.approxEq(tuple(4, -4, 3, 1)));
 }
 
 test "Scenario: vector() creates tuples with w=0" {
@@ -76,5 +76,5 @@ test "Scenario: vector() creates tuples with w=0" {
     const v = vector(4, -4, 3);
 
     // Then
-    try std.testing.expect(v.approxEq(tuple(4, -4, 3, 0), EPSILON));
+    try std.testing.expect(v.approxEq(tuple(4, -4, 3, 0)));
 }
