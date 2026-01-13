@@ -49,12 +49,12 @@ pub const Tuple = struct {
         return tuple(-self.x, -self.y, -self.z, -self.w);
     }
 
-    pub fn mul(self: Tuple, s: f64) Tuple {
+    pub fn mul(self: Tuple, m: f64) Tuple {
         return tuple(
-            s * self.x,
-            s * self.y,
-            s * self.z,
-            s * self.w,
+            m * self.x,
+            m * self.y,
+            m * self.z,
+            m * self.w,
         );
     }
 
