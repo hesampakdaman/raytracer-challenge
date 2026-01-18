@@ -83,6 +83,16 @@ const Canvas = struct {
         return list.toOwnedSlice(allocator);
     }
 
+    pub fn savePpm(self: Canvas, allocator: Allocator, path: []const u8) !void {
+        const data = try self.ppm(allocator);
+        defer allocator.free(data);
+
+        try std.fs.cwd().writeFile(.{
+            .sub_path = path,
+            .data = data,
+        });
+    }
+
     fn normalizeColor(self: Canvas, val: f64) usize {
         const upper: f64 = @floatFromInt(self.max_color_value);
         const scaled = std.math.round(val * upper);
