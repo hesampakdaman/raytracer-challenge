@@ -5,7 +5,7 @@ const Allocator = std.mem.Allocator;
 const color = @import("color.zig");
 const Color = color.Color;
 
-const Canvas = struct {
+pub const Canvas = struct {
     allocator: Allocator,
     width: usize,
     height: usize,
