@@ -45,15 +45,20 @@ const Canvas = struct {
     pub fn ppm(self: Canvas, allocator: Allocator) ![]const u8 {
         const num_colors: usize = 3;
         const num_headers: usize = 3;
-        var list = try std.ArrayList(u8).initCapacity(
+        var aw = try std.Io.Writer.Allocating.initCapacity(
             allocator,
             (num_colors + 1) * self.pixels.len + num_headers,
         );
-        errdefer list.deinit(allocator);
+        errdefer aw.deinit();
 
+        try self.writePpm(&aw.writer);
+
+        return aw.toOwnedSlice();
+    }
+
+    pub fn writePpm(self: Canvas, writer: *std.Io.Writer) !void {
         // header
-        try list.print(
-            allocator,
+        try writer.print(
             "P3\n{d} {d}\n{d}\n",
             .{ self.width, self.height, self.max_color_value },
         );
@@ -67,30 +72,34 @@ const Canvas = struct {
                     const ch_digit = self.normalizeColor(ch);
                     const num_digits: usize = if (ch_digit >= 100) 3 else if (ch_digit >= 10) 2 else 1;
                     if (self.needsWrap(line_len, num_digits)) {
-                        try list.print(allocator, "\n", .{});
+                        try writer.print("\n", .{});
                         line_len = 0;
                     } else if (line_len > 0) {
-                        try list.print(allocator, " ", .{});
+                        try writer.print(" ", .{});
                         line_len += 1;
                     }
 
-                    try list.print(allocator, "{d}", .{ch_digit});
+                    try writer.print("{d}", .{ch_digit});
                     line_len += num_digits;
                 }
             }
-            try list.print(allocator, "\n", .{});
+            try writer.print("\n", .{});
         }
-        return list.toOwnedSlice(allocator);
     }
 
-    pub fn savePpm(self: Canvas, allocator: Allocator, path: []const u8) !void {
-        const data = try self.ppm(allocator);
-        defer allocator.free(data);
-
-        try std.fs.cwd().writeFile(.{
-            .sub_path = path,
-            .data = data,
+    pub fn savePpm(self: Canvas, path: []const u8) !void {
+        var file = try std.fs.cwd().createFile(path, .{
+            .truncate = true,
+            .read = true,
         });
+        defer file.close();
+
+        var buf: [4096]u8 = undefined;
+        var file_writer = file.writer(&buf);
+        const w = &file_writer.interface;
+
+        try self.writePpm(w);
+        try w.flush();
     }
 
     fn normalizeColor(self: Canvas, val: f64) usize {
