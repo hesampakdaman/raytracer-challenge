@@ -26,7 +26,7 @@ fn tick(env: Environment, proj: Projectile) Projectile {
     return Projectile{ .position = position, .velocity = velocity };
 }
 
-test "Chapter 2: Putting it togheter" {
+test "Chapter 2: Putting it together" {
     var p = Projectile{
         .position = point(0, 1, 0),
         .velocity = vector(1, 1, 0).normalize(),
