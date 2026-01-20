@@ -39,12 +39,21 @@ test "Chapter 2: Putting it togheter" {
     var i: usize = 0;
     while (p.position.y() >= 0) {
         p = tick(e, p);
-        // std.debug.print("tick({d}): projectile at position({d:.2}, {d:.2}, {d:.2})\n", .{ i, p.position.x, p.position.y, p.position.z });
         i += 1;
     }
+
+    try std.testing.expect(p.position.approxEq(point(10.66082, -0.57919, 0)));
 }
 
 test "Chapter 3: Putting it together" {
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    const parent = try tmp.dir.realpathAlloc(allocator, ".");
+    defer allocator.free(parent);
+    const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "test.ppm" });
+    defer allocator.free(ppm_file_path);
+
     var p = Projectile{
         .position = point(0, 1, 0),
         .velocity = vector(1, 1.8, 0).normalize().mul(11.25),
@@ -63,5 +72,5 @@ test "Chapter 3: Putting it together" {
         p = tick(e, p);
     }
 
-    try c.savePpm("out.ppm");
+    try c.savePpm(ppm_file_path);
 }
