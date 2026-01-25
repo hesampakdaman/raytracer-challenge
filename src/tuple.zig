@@ -11,6 +11,10 @@ pub const Tuple = struct {
         return .{ .data = .{ x_val, y_val, z_val, w_val } };
     }
 
+    pub fn at(self: Tuple, i: usize) f64 {
+        return self.data[i];
+    }
+
     pub fn x(self: Tuple) f64 {
         return self.data[0];
     }
