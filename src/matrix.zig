@@ -1,4 +1,5 @@
 const std = @import("std");
+const math = std.math;
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
@@ -144,6 +145,102 @@ fn Matrix(comptime N: usize) type {
                 }
             }
             return out;
+        }
+
+        pub fn translate(self: Self, x: f64, y: f64, z: f64) Self {
+            comptime if (N != 4) @compileError("translate requires N == 4");
+
+            const T = Self{
+                .data = .{
+                    .{ 1, 0, 0, x },
+                    .{ 0, 1, 0, y },
+                    .{ 0, 0, 1, z },
+                    .{ 0, 0, 0, 1 },
+                },
+            };
+
+            return T.mul(self);
+        }
+
+        pub fn scale(self: Self, x: f64, y: f64, z: f64) Self {
+            comptime if (N != 4) @compileError("translate requires N == 4");
+
+            const T = Self{
+                .data = .{
+                    .{ x, 0, 0, 0 },
+                    .{ 0, y, 0, 0 },
+                    .{ 0, 0, z, 0 },
+                    .{ 0, 0, 0, 1 },
+                },
+            };
+
+            return T.mul(self);
+        }
+
+        pub fn rotateX(self: Self, rad: f64) Self {
+            comptime if (N != 4) @compileError("translate requires N == 4");
+
+            const cosr = math.cos(rad);
+            const sinr = math.sin(rad);
+            const T = Self{
+                .data = .{
+                    .{ 1.000, 0.00, 0.00, 0.00 },
+                    .{ 0.000, cosr, -sinr, 0.00 },
+                    .{ 0.000, sinr, cosr, 0.00 },
+                    .{ 0.000, 0.00, 0.00, 1.00 },
+                },
+            };
+
+            return T.mul(self);
+        }
+
+        pub fn rotateY(self: Self, rad: f64) Self {
+            comptime if (N != 4) @compileError("translate requires N == 4");
+
+            const cosr = math.cos(rad);
+            const sinr = math.sin(rad);
+            const T = Self{
+                .data = .{
+                    .{ cosr, 0.000, sinr, 0.00 },
+                    .{ 0.000, 1.00, 0.00, 0.00 },
+                    .{ -sinr, 0.00, cosr, 0.00 },
+                    .{ 0.000, 0.00, 0.00, 1.00 },
+                },
+            };
+
+            return T.mul(self);
+        }
+
+        pub fn rotateZ(self: Self, rad: f64) Self {
+            comptime if (N != 4) @compileError("translate requires N == 4");
+
+            const cosr = math.cos(rad);
+            const sinr = math.sin(rad);
+            const T = Self{
+                .data = .{
+                    .{ cosr, -sinr, 0.00, 0.00 },
+                    .{ sinr, cosr, 0.000, 0.00 },
+                    .{ 0.00, 0.00, 1.000, 0.00 },
+                    .{ 0.00, 0.00, 0.000, 1.00 },
+                },
+            };
+
+            return T.mul(self);
+        }
+
+        pub fn shear(self: Self, x_y: f64, x_z: f64, y_x: f64, y_z: f64, z_x: f64, z_y: f64) Self {
+            comptime if (N != 4) @compileError("translate requires N == 4");
+
+            const T = Self{
+                .data = .{
+                    .{ 1.0, x_y, x_z, 0.0 },
+                    .{ y_x, 1.0, y_z, 0.0 },
+                    .{ z_x, z_y, 1.0, 0.0 },
+                    .{ 0.0, 0.0, 0.0, 1.0 },
+                },
+            };
+
+            return T.mul(self);
         }
     };
 }
