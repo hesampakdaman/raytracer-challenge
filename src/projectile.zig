@@ -49,8 +49,10 @@ test "Chapter 3: Putting it together" {
     const allocator = std.testing.allocator;
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
+
     const parent = try tmp.dir.realpathAlloc(allocator, ".");
     defer allocator.free(parent);
+
     const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "test.ppm" });
     defer allocator.free(ppm_file_path);
 

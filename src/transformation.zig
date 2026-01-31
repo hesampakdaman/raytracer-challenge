@@ -1,9 +1,13 @@
 const std = @import("std");
 const math = std.math;
+const pi: f64 = math.pi;
 
 const Mat4 = @import("matrix.zig").Mat4;
 const point = @import("tuple.zig").point;
 const vector = @import("tuple.zig").vector;
+
+const Canvas = @import("canvas.zig").Canvas;
+const Color = @import("color.zig").Color;
 
 pub fn translation(x: f64, y: f64, z: f64) Mat4 {
     return Mat4.identity().translate(x, y, z);
@@ -97,8 +101,8 @@ test "Reflection is scaling by a negative value" {
 test "Rotating a point around the x axis" {
     // Given
     const p = point(0, 1, 0);
-    const half_quarter = rotationX(@as(f64, math.pi) / 4);
-    const full_quarter = rotationX(@as(f64, math.pi) / 2);
+    const half_quarter = rotationX(pi / 4);
+    const full_quarter = rotationX(pi / 2);
 
     // Then
     try std.testing.expect(half_quarter.apply(p).approxEq(point(0, math.sqrt(2.0) / 2.0, math.sqrt(2.0) / 2.0)));
@@ -108,7 +112,7 @@ test "Rotating a point around the x axis" {
 test "The inverse of an x-rotation rotates in the opposite direction" {
     // Given
     const p = point(0, 1, 0);
-    const half_quarter = rotationX(@as(f64, math.pi) / 4);
+    const half_quarter = rotationX(pi / 4);
     const inv = try half_quarter.inverse();
 
     // Then
@@ -118,8 +122,8 @@ test "The inverse of an x-rotation rotates in the opposite direction" {
 test "Rotating a point around the y axis" {
     // Given
     const p = point(0, 0, 1);
-    const half_quarter = rotationY(@as(f64, math.pi) / 4);
-    const full_quarter = rotationY(@as(f64, math.pi) / 2);
+    const half_quarter = rotationY(pi / 4);
+    const full_quarter = rotationY(pi / 2);
 
     // Then
     try std.testing.expect(half_quarter.apply(p).approxEq(point(math.sqrt(2.0) / 2.0, 0, math.sqrt(2.0) / 2.0)));
@@ -129,8 +133,8 @@ test "Rotating a point around the y axis" {
 test "Rotating a point around the z axis" {
     // Given
     const p = point(0, 1, 0);
-    const half_quarter = rotationZ(@as(f64, math.pi) / 4);
-    const full_quarter = rotationZ(@as(f64, math.pi) / 2);
+    const half_quarter = rotationZ(pi / 4);
+    const full_quarter = rotationZ(pi / 2);
 
     // Then
     try std.testing.expect(half_quarter.apply(p).approxEq(point(-math.sqrt(2.0) / 2.0, math.sqrt(2.0) / 2.0, 0)));
@@ -194,7 +198,7 @@ test "A shearing transformation moves z in proportion to y" {
 test "Individual transformations are applied in sequence" {
     // Given
     const p = point(1, 0, 1);
-    const A = rotationX(@as(f64, math.pi) / 2.0);
+    const A = rotationX(pi / 2.0);
     const B = scaling(5, 5, 3);
     const C = translation(10, 5, 7);
 
@@ -217,7 +221,7 @@ test "Individual transformations are applied in sequence" {
 test "Chained transformations must be applied in reverse order" {
     // Given
     const p = point(1, 0, 1);
-    const A = rotationX(@as(f64, math.pi) / 2.0);
+    const A = rotationX(pi / 2.0);
     const B = scaling(5, 5, 3);
     const C = translation(10, 5, 7);
 
@@ -233,10 +237,47 @@ test "Chained transformations using a fluent API" {
     const p = point(1, 0, 1);
     const T = Mat4
         .identity()
-        .rotateX(@as(f64, math.pi) / 2.0)
+        .rotateX(pi / 2.0)
         .scale(5, 5, 5)
         .translate(10, 5, 7);
 
     // Then
     try std.testing.expect(T.apply(p).approxEq(point(15, 0, 7)));
+}
+
+test "Chapter 4: Putting it together" {
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+
+    const parent = try tmp.dir.realpathAlloc(allocator, ".");
+    defer allocator.free(parent);
+
+    const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "clock_demo.ppm" });
+    defer allocator.free(ppm_file_path);
+
+    var c = try Canvas.init(allocator, 250, 250);
+    defer c.deinit();
+
+    const width: f64 = @floatFromInt(c.width);
+    const height: f64 = @floatFromInt(c.height);
+    const center = point(width / 2.0, 0.0, height / 2.0);
+    const radius: f64 = 3.0 / 8.0 * width;
+    const twelve = point(0, 0, 1);
+    const angle_per_hour = 2.0 * pi / 12.0;
+
+    for (0..12) |i| {
+        const hour: f64 = @floatFromInt(i);
+        const dial = Mat4
+            .identity()
+            .rotateY(hour * angle_per_hour)
+            .scale(radius, 0, radius)
+            .translate(center.x(), center.y(), center.z())
+            .apply(twelve);
+
+        const x: usize = @intFromFloat(dial.x());
+        const y: usize = @intFromFloat(dial.z());
+        c.writePixel(x, y, Color.init(255, 255, 255));
+    }
+
+    try c.savePpm(ppm_file_path);
 }
