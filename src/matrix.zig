@@ -36,7 +36,6 @@ fn Matrix(comptime N: usize) type {
             for (0..N) |i| {
                 for (0..N) |j| {
                     if (!std.math.approxEqAbs(f64, self.at(i, j), other.at(i, j), EPSILON)) {
-                        // std.debug.print("{d} vs {d}\n", .{ self.at(i, j), other.at(i, j) });
                         return false;
                     }
                 }
