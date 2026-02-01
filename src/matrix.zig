@@ -133,16 +133,18 @@ fn Matrix(comptime N: usize) type {
         }
 
         pub fn inverse(self: Self) !Self {
-            if (!self.invertible()) return error.NotInvertible;
-            var out: Self = undefined;
-
             const det = self.determinant();
+            if (std.math.approxEqAbs(f64, det, 0, EPSILON))
+                return error.NotInvertible;
+
+            var out: Self = undefined;
             for (0..N) |i| {
                 for (0..N) |j| {
                     const cof = self.cofactor(i, j);
                     out.set(j, i, cof / det);
                 }
             }
+
             return out;
         }
 
