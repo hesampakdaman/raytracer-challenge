@@ -66,8 +66,7 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn apply(self: Self, tuple: Tuple) Tuple {
-            assert(N == 4);
+        pub fn apply(self: Matrix(4), tuple: Tuple) Tuple {
             var out: [N]f64 = .{ 0, 0, 0, 0 };
             for (0..N) |i| {
                 for (0..N) |j| {
@@ -99,7 +98,7 @@ fn Matrix(comptime N: usize) type {
         }
 
         pub fn submatrix(self: Self, row: usize, col: usize) Matrix(N - 1) {
-            comptime if (N <= 1) @compileError("submatrix requires N >= 1");
+            comptime if (N <= 1) @compileError("submatrix requires N > 1");
             assert(row < N and col < N);
 
             var out: Matrix(N - 1) = undefined;
@@ -147,9 +146,7 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn translate(self: Self, x: f64, y: f64, z: f64) Self {
-            comptime if (N != 4) @compileError("translate requires N == 4");
-
+        pub fn translate(self: Matrix(4), x: f64, y: f64, z: f64) Self {
             const T = Self{
                 .data = .{
                     .{ 1, 0, 0, x },
@@ -162,9 +159,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn scale(self: Self, x: f64, y: f64, z: f64) Self {
-            comptime if (N != 4) @compileError("translate requires N == 4");
-
+        pub fn scale(self: Matrix(4), x: f64, y: f64, z: f64) Self {
             const T = Self{
                 .data = .{
                     .{ x, 0, 0, 0 },
@@ -177,9 +172,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn rotateX(self: Self, rad: f64) Self {
-            comptime if (N != 4) @compileError("translate requires N == 4");
-
+        pub fn rotateX(self: Matrix(4), rad: f64) Matrix(4) {
             const cosr = math.cos(rad);
             const sinr = math.sin(rad);
             const T = Self{
@@ -194,9 +187,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn rotateY(self: Self, rad: f64) Self {
-            comptime if (N != 4) @compileError("translate requires N == 4");
-
+        pub fn rotateY(self: Matrix(4), rad: f64) Matrix(4) {
             const cosr = math.cos(rad);
             const sinr = math.sin(rad);
             const T = Self{
@@ -211,9 +202,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn rotateZ(self: Self, rad: f64) Self {
-            comptime if (N != 4) @compileError("translate requires N == 4");
-
+        pub fn rotateZ(self: Matrix(4), rad: f64) Matrix(4) {
             const cosr = math.cos(rad);
             const sinr = math.sin(rad);
             const T = Self{
@@ -228,9 +217,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn shear(self: Self, x_y: f64, x_z: f64, y_x: f64, y_z: f64, z_x: f64, z_y: f64) Self {
-            comptime if (N != 4) @compileError("translate requires N == 4");
-
+        pub fn shear(self: Matrix(4), x_y: f64, x_z: f64, y_x: f64, y_z: f64, z_x: f64, z_y: f64) Self {
             const T = Self{
                 .data = .{
                     .{ 1.0, x_y, x_z, 0.0 },
