@@ -86,8 +86,9 @@ fn Matrix(comptime N: usize) type {
         }
 
         pub fn determinant(self: Self) f64 {
-            if (N == 2) return self.at(0, 0) * self.at(1, 1) -
-                self.at(0, 1) * self.at(1, 0);
+            if (N == 2) {
+                return self.at(0, 0) * self.at(1, 1) - self.at(0, 1) * self.at(1, 0);
+            }
 
             var det: f64 = 0;
             for (0..N) |j| {
