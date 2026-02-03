@@ -54,15 +54,14 @@ fn Matrix(comptime N: usize) type {
             self.data[row][col] = val;
         }
 
-        pub fn mul(self: Self, other: Self) Self {
-            var out: Self = undefined;
+        pub fn mul(self: *const Self, other: Self) Self {
+            var out: Self = Self.zero();
             for (0..N) |i| {
-                for (0..N) |j| {
-                    var val: f64 = 0;
-                    for (0..N) |k| {
-                        val += self.at(i, k) * other.at(k, j);
+                for (0..N) |k| {
+                    const val = self.data[i][k];
+                    for (0..N) |j| {
+                        out.data[i][j] += val * other.data[k][j];
                     }
-                    out.set(i, j, val);
                 }
             }
             return out;
@@ -113,7 +112,7 @@ fn Matrix(comptime N: usize) type {
                 var l: usize = 0;
                 for (0..N) |j| {
                     if (j == col) continue;
-                    out.set(k, l, self.at(i, j));
+                    out.data[k][l] = self.data[i][j];
                     l += 1;
                 }
                 k += 1;
