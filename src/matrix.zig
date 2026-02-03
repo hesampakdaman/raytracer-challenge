@@ -20,8 +20,11 @@ fn Matrix(comptime N: usize) type {
         }
 
         pub fn zero() Self {
-            const data: [N][N]f64 = [_][N]f64{[_]f64{0} ** N} ** N;
-            return Self.init(data);
+            var data: [N][N]f64 = undefined;
+            for (&data) |*row| {
+                @memset(row, 0);
+            }
+            return .{ .data = data };
         }
 
         pub fn identity() Self {
