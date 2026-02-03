@@ -35,7 +35,7 @@ fn Matrix(comptime N: usize) type {
             return I;
         }
 
-        pub fn approxEq(self: Self, other: Self) bool {
+        pub fn approxEq(self: *const Self, other: *const Self) bool {
             for (0..N) |i| {
                 for (0..N) |j| {
                     if (!std.math.approxEqAbs(f64, self.at(i, j), other.at(i, j), EPSILON)) {
@@ -46,7 +46,7 @@ fn Matrix(comptime N: usize) type {
             return true;
         }
 
-        pub fn at(self: Self, row: usize, col: usize) f64 {
+        pub fn at(self: *const Self, row: usize, col: usize) f64 {
             return self.data[row][col];
         }
 
@@ -54,7 +54,7 @@ fn Matrix(comptime N: usize) type {
             self.data[row][col] = val;
         }
 
-        pub fn mul(self: *const Self, other: Self) Self {
+        pub fn mul(self: *const Self, other: *const Self) Self {
             var out: Self = Self.zero();
             for (0..N) |i| {
                 for (0..N) |k| {
@@ -67,7 +67,7 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn apply(self: Matrix(4), tuple: Tuple) Tuple {
+        pub fn apply(self: *const Matrix(4), tuple: Tuple) Tuple {
             var out: [N]f64 = .{ 0, 0, 0, 0 };
             for (0..N) |i| {
                 for (0..N) |j| {
@@ -77,7 +77,7 @@ fn Matrix(comptime N: usize) type {
             return Tuple.init(out[0], out[1], out[2], out[3]);
         }
 
-        pub fn transpose(self: Self) Self {
+        pub fn transpose(self: *const Self) Self {
             var out: Self = undefined;
             for (0..N) |i| {
                 for (0..N) |j| {
@@ -87,7 +87,7 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn determinant(self: Self) f64 {
+        pub fn determinant(self: *const Self) f64 {
             if (N == 2) {
                 return self.at(0, 0) * self.at(1, 1) - self.at(0, 1) * self.at(1, 0);
             }
@@ -99,7 +99,7 @@ fn Matrix(comptime N: usize) type {
             return det;
         }
 
-        pub fn submatrix(self: Self, row: usize, col: usize) Matrix(N - 1) {
+        pub fn submatrix(self: *const Self, row: usize, col: usize) Matrix(N - 1) {
             comptime if (N <= 1) @compileError("submatrix requires N > 1");
             assert(row < N and col < N);
 
@@ -121,20 +121,20 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn minor(self: Self, row: usize, col: usize) f64 {
+        pub fn minor(self: *const Self, row: usize, col: usize) f64 {
             return self.submatrix(row, col).determinant();
         }
 
-        pub fn cofactor(self: Self, row: usize, col: usize) f64 {
+        pub fn cofactor(self: *const Self, row: usize, col: usize) f64 {
             const sign: f64 = if ((row + col) % 2 == 0) 1 else -1;
             return sign * self.minor(row, col);
         }
 
-        pub fn invertible(self: Self) bool {
+        pub fn invertible(self: *const Self) bool {
             return !std.math.approxEqAbs(f64, self.determinant(), 0, EPSILON);
         }
 
-        pub fn inverse(self: Self) !Self {
+        pub fn inverse(self: *const Self) !Self {
             const det = self.determinant();
             if (std.math.approxEqAbs(f64, det, 0, EPSILON))
                 return error.NotInvertible;
@@ -150,7 +150,7 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn translate(self: Matrix(4), x: f64, y: f64, z: f64) Self {
+        pub fn translate(self: *const Matrix(4), x: f64, y: f64, z: f64) Self {
             const T = Self{
                 .data = .{
                     .{ 1, 0, 0, x },
@@ -163,7 +163,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn scale(self: Matrix(4), x: f64, y: f64, z: f64) Self {
+        pub fn scale(self: *const Matrix(4), x: f64, y: f64, z: f64) Self {
             const T = Self{
                 .data = .{
                     .{ x, 0, 0, 0 },
@@ -176,7 +176,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn rotateX(self: Matrix(4), rad: f64) Matrix(4) {
+        pub fn rotateX(self: *const Matrix(4), rad: f64) Matrix(4) {
             const cosr = math.cos(rad);
             const sinr = math.sin(rad);
             const T = Self{
@@ -191,7 +191,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn rotateY(self: Matrix(4), rad: f64) Matrix(4) {
+        pub fn rotateY(self: *const Matrix(4), rad: f64) Matrix(4) {
             const cosr = math.cos(rad);
             const sinr = math.sin(rad);
             const T = Self{
@@ -206,7 +206,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn rotateZ(self: Matrix(4), rad: f64) Matrix(4) {
+        pub fn rotateZ(self: *const Matrix(4), rad: f64) Matrix(4) {
             const cosr = math.cos(rad);
             const sinr = math.sin(rad);
             const T = Self{
@@ -221,7 +221,7 @@ fn Matrix(comptime N: usize) type {
             return T.mul(self);
         }
 
-        pub fn shear(self: Matrix(4), x_y: f64, x_z: f64, y_x: f64, y_z: f64, z_x: f64, z_y: f64) Self {
+        pub fn shear(self: *const Matrix(4), x_y: f64, x_z: f64, y_x: f64, y_z: f64, z_x: f64, z_y: f64) Self {
             const T = Self{
                 .data = .{
                     .{ 1.0, x_y, x_z, 0.0 },
@@ -299,7 +299,7 @@ test "Matrix equality with identical matrices" {
     });
 
     // Then
-    try std.testing.expect(A.approxEq(B));
+    try std.testing.expect(A.approxEq(&B));
 }
 
 test "Matrix equality with different matrices" {
@@ -318,7 +318,7 @@ test "Matrix equality with different matrices" {
     });
 
     // Then
-    try std.testing.expect(!A.approxEq(B));
+    try std.testing.expect(!A.approxEq(&B));
 }
 
 test "Multiplying two matrices" {
@@ -337,7 +337,7 @@ test "Multiplying two matrices" {
     });
 
     // Then
-    try std.testing.expect(A.mul(B).approxEq(Mat4.init(.{
+    try std.testing.expect(A.mul(&B).approxEq(&Mat4.init(.{
         .{ 20, 22, 50, 48 },
         .{ 44, 54, 114, 108 },
         .{ 40, 58, 110, 102 },
@@ -369,7 +369,7 @@ test "Multiplying a matrix by the identity matrix" {
     });
 
     // Then
-    try std.testing.expect(M.mul(Mat4.identity()).approxEq(M));
+    try std.testing.expect(M.mul(&Mat4.identity()).approxEq(&M));
 }
 
 test "Multiplying the identity matrix by a tuple" {
@@ -390,7 +390,7 @@ test "Transposing a matrix" {
     });
 
     // Then
-    try std.testing.expect(A.transpose().approxEq(Mat4.init(.{
+    try std.testing.expect(A.transpose().approxEq(&Mat4.init(.{
         .{ 0, 9, 1, 0 },
         .{ 9, 8, 8, 0 },
         .{ 3, 0, 5, 5 },
@@ -403,7 +403,7 @@ test "Transposing the identity matrix" {
     const A = Mat4.identity().transpose();
 
     // Then
-    try std.testing.expect(A.approxEq(Mat4.identity()));
+    try std.testing.expect(A.approxEq(&Mat4.identity()));
 }
 
 test "Calculating the determinant of a 2x2 matrix" {
@@ -426,7 +426,7 @@ test "A submatrix of a 3x3 matrix is a 2x2 matrix" {
     });
 
     // Then
-    try std.testing.expect(A.submatrix(0, 2).approxEq(Mat2.init(.{
+    try std.testing.expect(A.submatrix(0, 2).approxEq(&Mat2.init(.{
         .{ -3, 2 },
         .{ 0, 6 },
     })));
@@ -442,7 +442,7 @@ test "A submatrix of a 4x4 matrix is a 3x3 matrix" {
     });
 
     // Then
-    try std.testing.expect(A.submatrix(2, 1).approxEq(Mat3.init(.{
+    try std.testing.expect(A.submatrix(2, 1).approxEq(&Mat3.init(.{
         .{ -6, 1, 6 },
         .{ -8, 8, 6 },
         .{ -7, -1, 1 },
@@ -555,7 +555,7 @@ test "Calculating the inverse of a matrix" {
     try std.testing.expectApproxEqAbs(105, A.cofactor(3, 2), EPSILON);
     try std.testing.expectApproxEqAbs(105.0 / 532.0, B.at(2, 3), EPSILON);
 
-    try std.testing.expect(B.approxEq(Mat4.init(.{
+    try std.testing.expect(B.approxEq(&Mat4.init(.{
         .{ 0.21805, 0.45113, 0.24060, -0.04511 },
         .{ -0.80827, -1.45677, -0.44361, 0.52068 },
         .{ -0.07895, -0.22368, -0.05263, 0.19737 },
@@ -573,7 +573,7 @@ test "Calculating the inverse of another matrix" {
     });
 
     // Then
-    try std.testing.expect((try A.inverse()).approxEq(Mat4.init(.{
+    try std.testing.expect((try A.inverse()).approxEq(&Mat4.init(.{
         .{ -0.15385, -0.15385, -0.28205, -0.53846 },
         .{ -0.07692, 0.12308, 0.02564, 0.03077 },
         .{ 0.35897, 0.35897, 0.43590, 0.92308 },
@@ -595,10 +595,10 @@ test "Multiplying a product by its inverse" {
         .{ 7, 0, 5, 4 },
         .{ 6, -2, 0, 5 },
     });
-    const C = A.mul(B);
+    const C = A.mul(&B);
 
     // Then
-    try std.testing.expect(C.mul(try B.inverse()).approxEq(A));
+    try std.testing.expect(C.mul(&try B.inverse()).approxEq(&A));
 }
 
 test "Invert the identity matrix" {
@@ -606,7 +606,7 @@ test "Invert the identity matrix" {
     const A = Mat4.identity();
 
     // Then
-    try std.testing.expect(A.mul(try A.inverse()).approxEq(A));
+    try std.testing.expect(A.mul(&try A.inverse()).approxEq(&A));
 }
 
 test "Multiply a matrix by its inverse" {
@@ -619,7 +619,7 @@ test "Multiply a matrix by its inverse" {
     });
 
     // Then
-    try std.testing.expect(A.mul(try A.inverse()).approxEq(Mat4.identity()));
+    try std.testing.expect(A.mul(&try A.inverse()).approxEq(&Mat4.identity()));
 }
 
 test "Inverse of the transpose of a matrix are interchangeable" {
@@ -633,7 +633,7 @@ test "Inverse of the transpose of a matrix are interchangeable" {
 
     // Then
     try std.testing.expect((try A.transpose().inverse())
-        .approxEq((try A.inverse()).transpose()));
+        .approxEq(&(try A.inverse()).transpose()));
 }
 
 test "Changing one element of identity matrix affects tuple multiplication" {

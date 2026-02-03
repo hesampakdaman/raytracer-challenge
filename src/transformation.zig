@@ -226,7 +226,7 @@ test "Chained transformations must be applied in reverse order" {
     const C = translation(10, 5, 7);
 
     // When
-    const T = C.mul(B).mul(A);
+    const T = C.mul(&B).mul(&A);
 
     // Then
     try std.testing.expect(T.apply(p).approxEq(point(15, 0, 7)));
