@@ -68,7 +68,7 @@ fn Matrix(comptime N: usize) type {
         }
 
         pub fn apply(self: *const Matrix(4), tuple: Tuple) Tuple {
-            var out: [N]f64 = .{ 0, 0, 0, 0 };
+            var out: [4]f64 = .{ 0, 0, 0, 0 };
             for (0..N) |i| {
                 for (0..N) |j| {
                     out[i] += self.data[i][j] * tuple.at(j);
