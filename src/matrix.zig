@@ -58,9 +58,9 @@ fn Matrix(comptime N: usize) type {
             var out: Self = Self.zero();
             for (0..N) |i| {
                 for (0..N) |k| {
-                    const val = self.data[i][k];
+                    const a_ik = self.data[i][k];
                     for (0..N) |j| {
-                        out.data[i][j] += val * other.data[k][j];
+                        out.data[i][j] += a_ik * other.data[k][j];
                     }
                 }
             }
