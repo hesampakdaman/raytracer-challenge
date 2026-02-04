@@ -67,11 +67,11 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn apply(self: *const Matrix(4), tuple: Tuple) Tuple {
+        pub fn apply(self: *const Matrix(4), t: Tuple) Tuple {
             var out: [4]f64 = .{ 0, 0, 0, 0 };
             for (0..N) |i| {
                 for (0..N) |j| {
-                    out[i] += self.data[i][j] * tuple.at(j);
+                    out[i] += self.data[i][j] * t.at(j);
                 }
             }
             return Tuple.init(out[0], out[1], out[2], out[3]);
@@ -81,7 +81,7 @@ fn Matrix(comptime N: usize) type {
             var out: Self = undefined;
             for (0..N) |i| {
                 for (0..N) |j| {
-                    out.set(j, i, self.at(i, j));
+                    out.data[j][i] = self.data[i][j];
                 }
             }
             return out;
@@ -89,12 +89,12 @@ fn Matrix(comptime N: usize) type {
 
         pub fn determinant(self: *const Self) f64 {
             if (N == 2) {
-                return self.at(0, 0) * self.at(1, 1) - self.at(0, 1) * self.at(1, 0);
+                return self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0];
             }
 
             var det: f64 = 0;
             for (0..N) |j| {
-                det += self.at(0, j) * self.cofactor(0, j);
+                det += self.data[0][j] * self.cofactor(0, j);
             }
             return det;
         }
