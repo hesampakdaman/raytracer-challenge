@@ -4,6 +4,8 @@ const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 
 const Tuple = @import("tuple.zig").Tuple;
+const Point = @import("tuple.zig").Point;
+const Vector = @import("tuple.zig").Vector;
 const EPSILON = @import("core.zig").EPSILON;
 
 pub const Mat2 = Matrix(2);
@@ -67,14 +69,24 @@ fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn apply(self: *const Matrix(4), t: Tuple) Tuple {
-            var out: [4]f64 = .{ 0, 0, 0, 0 };
+        pub fn apply(self: *const Matrix(4), t: anytype) switch (@TypeOf(t)) {
+            Point => Point,
+            Vector => Vector,
+            Tuple => Tuple,
+            else => @compileError("Matrix.apply expects Point, Vector, or Tuple"),
+        } {
+            var data: [4]f64 = .{ 0, 0, 0, 0 };
             for (0..N) |i| {
                 for (0..N) |j| {
-                    out[i] += self.data[i][j] * t.at(j);
+                    data[i] += self.data[i][j] * t.at(j);
                 }
             }
-            return Tuple.init(out[0], out[1], out[2], out[3]);
+            return switch (@TypeOf(t)) {
+                Point => Point.init(data[0], data[1], data[2]),
+                Vector => Vector.init(data[0], data[1], data[2]),
+                Tuple => Tuple.init(data[0], data[1], data[2], data[3]),
+                else => unreachable,
+            };
         }
 
         pub fn transpose(self: *const Self) Self {

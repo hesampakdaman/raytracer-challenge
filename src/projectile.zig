@@ -1,23 +1,18 @@
 const std = @import("std");
 
-const canvas = @import("canvas.zig");
-const color = @import("color.zig");
-const tuple = @import("tuple.zig");
-
-const Canvas = canvas.Canvas;
-const Color = color.Color;
-const Tuple = tuple.Tuple;
-const point = tuple.point;
-const vector = tuple.vector;
+const Canvas = @import("canvas.zig").Canvas;
+const Color = @import("color.zig").Color;
+const Point = @import("tuple.zig").Point;
+const Vector = @import("tuple.zig").Vector;
 
 const Projectile = struct {
-    position: Tuple,
-    velocity: Tuple,
+    position: Point,
+    velocity: Vector,
 };
 
 const Environment = struct {
-    gravity: Tuple,
-    wind: Tuple,
+    gravity: Vector,
+    wind: Vector,
 };
 
 fn tick(env: Environment, proj: Projectile) Projectile {
@@ -28,12 +23,12 @@ fn tick(env: Environment, proj: Projectile) Projectile {
 
 test "Chapter 2: Putting it together" {
     var p = Projectile{
-        .position = point(0, 1, 0),
-        .velocity = vector(1, 1, 0).normalize(),
+        .position = Point.init(0, 1, 0),
+        .velocity = Vector.init(1, 1, 0).normalize(),
     };
     const e = Environment{
-        .gravity = vector(0, -0.1, 0),
-        .wind = vector(-0.01, 0, 0),
+        .gravity = Vector.init(0, -0.1, 0),
+        .wind = Vector.init(-0.01, 0, 0),
     };
 
     var i: usize = 0;
@@ -42,7 +37,7 @@ test "Chapter 2: Putting it together" {
         i += 1;
     }
 
-    try std.testing.expect(p.position.approxEq(point(10.66082, -0.57919, 0)));
+    try std.testing.expect(p.position.approxEq(Point.init(10.66082, -0.57919, 0)));
 }
 
 test "Chapter 3: Putting it together" {
@@ -57,12 +52,12 @@ test "Chapter 3: Putting it together" {
     defer allocator.free(ppm_file_path);
 
     var p = Projectile{
-        .position = point(0, 1, 0),
-        .velocity = vector(1, 1.8, 0).normalize().mul(11.25),
+        .position = Point.init(0, 1, 0),
+        .velocity = Vector.init(1, 1.8, 0).normalize().mul(11.25),
     };
     const e = Environment{
-        .gravity = vector(0, -0.1, 0),
-        .wind = vector(-0.01, 0, 0),
+        .gravity = Vector.init(0, -0.1, 0),
+        .wind = Vector.init(-0.01, 0, 0),
     };
     var c = try Canvas.init(std.testing.allocator, 900, 550);
     defer c.deinit();
