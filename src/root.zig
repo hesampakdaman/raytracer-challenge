@@ -5,6 +5,9 @@ pub const canvas = @import("canvas.zig");
 pub const projectile = @import("projectile.zig");
 pub const matrix = @import("matrix.zig");
 pub const transformation = @import("transformation.zig");
+pub const ray = @import("ray.zig");
+pub const sphere = @import("sphere.zig");
+pub const intersection = @import("intersection.zig");
 
 test {
     std.testing.refAllDecls(@This());
