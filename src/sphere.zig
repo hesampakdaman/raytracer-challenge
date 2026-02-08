@@ -13,10 +13,10 @@ const Vector = @import("tuple.zig").Vector;
 const Mat4 = @import("matrix.zig").Mat4;
 
 pub const Sphere = struct {
-    transformation: Mat4 = Mat4.identity(),
+    transform: Mat4 = Mat4.identity(),
 
     pub fn intersect(self: *const Sphere, r: Ray) Intersections {
-        const inv = self.transformation.inverse() catch @panic("Sphere has non-invertible transform");
+        const inv = self.transform.inverse();
         const ray = r.transform(inv);
 
         // remember: the sphere is centered at the world origin
@@ -40,7 +40,17 @@ pub const Sphere = struct {
     }
 
     pub fn setTransform(self: *Sphere, t: Mat4) void {
-        self.transformation = t;
+        self.transform = t;
+    }
+
+    pub fn normalAt(self: Sphere, world_point: Point) Vector {
+        const object_point: Point = self.transform.inverse().apply(world_point);
+        const object_normal: Vector = object_point.sub(Point.zero());
+        return self.transform
+            .inverse()
+            .transpose()
+            .apply(object_normal)
+            .normalize();
     }
 };
 
@@ -217,4 +227,84 @@ test "Chapter 5: Putting it together" {
     }
 
     try canvas.savePpm(ppm_file_path);
+}
+
+test "The normal on a sphere at a point on the x axis" {
+    // Given
+    const s = Sphere{};
+
+    // When
+    const n = s.normalAt(Point.init(1, 0, 0));
+
+    // Then
+    try expect.approxEqVector(Vector.init(1, 0, 0), n);
+}
+
+test "The normal on a sphere at a point on the y axis" {
+    // Given
+    const s = Sphere{};
+
+    // When
+    const n = s.normalAt(Point.init(0, 1, 0));
+
+    // Then
+    try std.testing.expect(n.approxEq(Vector.init(0, 1, 0)));
+}
+
+test "The normal on a sphere at a point on the z axis" {
+    // Given
+    const s = Sphere{};
+
+    // When
+    const n = s.normalAt(Point.init(0, 0, 1));
+
+    // Then
+    try std.testing.expect(n.approxEq(Vector.init(0, 0, 1)));
+}
+
+test "The normal on a sphere at a point on a nonaxial point" {
+    // Given
+    const s = Sphere{};
+
+    // When
+    const n = s.normalAt(Point.init(num.sqrt3 / 3.0, num.sqrt3 / 3.0, num.sqrt3 / 3.0));
+
+    // Then
+    try expect.approxEqVector(Vector.init(num.sqrt3 / 3.0, num.sqrt3 / 3.0, num.sqrt3 / 3.0), n);
+}
+
+test "The normal is a normalized vector" {
+    // Given
+    const s = Sphere{};
+
+    // When
+    const n = s.normalAt(Point.init(num.sqrt3 / 3.0, num.sqrt3 / 3.0, num.sqrt3 / 3.0));
+
+    // Then
+    try expect.approxEqVector(n.normalize(), n);
+}
+
+test "Computing the normal on a translated sphere" {
+    // Given
+    var s = Sphere{};
+    s.setTransform(tsfm.translation(0, 1, 0));
+
+    // When
+    const n = s.normalAt(Point.init(0, 1.70711, -0.70711));
+
+    // Then
+    try expect.approxEqVector(Vector.init(0, num.sqrt1_2, -num.sqrt1_2), n);
+}
+
+test "Computing the normal on a transformed sphere" {
+    // Given
+    var s = Sphere{};
+    const m = tsfm.scaling(1, 0.5, 1).mul(&tsfm.rotationZ(num.pi / 5.0));
+    s.setTransform(m);
+
+    // When
+    const n = s.normalAt(Point.init(0, num.sqrt2 / 2.0, -num.sqrt2 / 2.0));
+
+    // Then
+    try expect.approxEqVector(Vector.init(0, 0.97014, -0.24254), n);
 }
