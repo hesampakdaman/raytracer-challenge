@@ -12,9 +12,9 @@ pub fn approxEqTuple(expected: Tuple, actual: Tuple) !void {
     if (!expected.approxEq(actual)) {
         std.debug.print(
             \\ Mismatch
-            \\  got:    ({d}, {d}, {d}, {d})
-            \\  expect: ({d}, {d}, {d}, {d})
-            \\  diff:   ({d}, {d}, {d}, {d})
+            \\  expect:    ({d}, {d}, {d}, {d})
+            \\  got:       ({d}, {d}, {d}, {d})
+            \\  diff:      ({d}, {d}, {d}, {d})
             \\
         , .{
             expected.x(),              expected.y(),              expected.z(),              expected.w(),
