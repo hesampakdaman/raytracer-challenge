@@ -45,7 +45,7 @@ test "Multiplying by a translation matrix" {
 test "Multiplying by the inverse of a translation matrix" {
     // Given
     const transform = translation(5, -3, 2);
-    const inv = try transform.inverse();
+    const inv = transform.inverse();
     const p = Point.init(-3, 4, 5);
 
     // Then
@@ -82,7 +82,7 @@ test "A scaling matrix applied to a vector" {
 test "Multiplying by the inverse of a scaling matrix" {
     // Given
     const transform = scaling(2, 3, 4);
-    const inv = try transform.inverse();
+    const inv = transform.inverse();
     const v = Vector.init(-4, 6, 8);
 
     // Then
@@ -113,7 +113,7 @@ test "The inverse of an x-rotation rotates in the opposite direction" {
     // Given
     const p = Point.init(0, 1, 0);
     const half_quarter = rotationX(pi / 4);
-    const inv = try half_quarter.inverse();
+    const inv = half_quarter.inverse();
 
     // Then
     try std.testing.expect(inv.apply(p).approxEq(Point.init(0, math.sqrt(2.0) / 2.0, -math.sqrt(2.0) / 2.0)));

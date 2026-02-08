@@ -146,10 +146,9 @@ pub fn Matrix(comptime N: usize) type {
             return !std.math.approxEqAbs(f64, self.determinant(), 0, EPSILON);
         }
 
-        pub fn inverse(self: *const Self) !Self {
+        pub fn inverse(self: *const Self) Self {
             const det = self.determinant();
-            if (std.math.approxEqAbs(f64, det, 0, EPSILON))
-                return error.NotInvertible;
+            if (std.math.approxEqAbs(f64, det, 0, EPSILON)) @panic("Matrix is not invertible");
 
             var out: Self = undefined;
             for (0..N) |i| {
@@ -558,7 +557,7 @@ test "Calculating the inverse of a matrix" {
         .{ 7, 7, -6, -7 },
         .{ 1, -3, 7, 4 },
     });
-    const B = try A.inverse();
+    const B = A.inverse();
 
     // Then
     try std.testing.expectApproxEqAbs(532, A.determinant(), EPSILON);
@@ -585,7 +584,7 @@ test "Calculating the inverse of another matrix" {
     });
 
     // Then
-    try std.testing.expect((try A.inverse()).approxEq(&Mat4.init(.{
+    try std.testing.expect(A.inverse().approxEq(&Mat4.init(.{
         .{ -0.15385, -0.15385, -0.28205, -0.53846 },
         .{ -0.07692, 0.12308, 0.02564, 0.03077 },
         .{ 0.35897, 0.35897, 0.43590, 0.92308 },
@@ -610,7 +609,7 @@ test "Multiplying a product by its inverse" {
     const C = A.mul(&B);
 
     // Then
-    try std.testing.expect(C.mul(&try B.inverse()).approxEq(&A));
+    try std.testing.expect(C.mul(&B.inverse()).approxEq(&A));
 }
 
 test "Invert the identity matrix" {
@@ -618,7 +617,7 @@ test "Invert the identity matrix" {
     const A = Mat4.identity();
 
     // Then
-    try std.testing.expect(A.mul(&try A.inverse()).approxEq(&A));
+    try std.testing.expect(A.mul(&A.inverse()).approxEq(&A));
 }
 
 test "Multiply a matrix by its inverse" {
@@ -631,7 +630,7 @@ test "Multiply a matrix by its inverse" {
     });
 
     // Then
-    try std.testing.expect(A.mul(&try A.inverse()).approxEq(&Mat4.identity()));
+    try std.testing.expect(A.mul(&A.inverse()).approxEq(&Mat4.identity()));
 }
 
 test "Inverse of the transpose of a matrix are interchangeable" {
@@ -644,8 +643,7 @@ test "Inverse of the transpose of a matrix are interchangeable" {
     });
 
     // Then
-    try std.testing.expect((try A.transpose().inverse())
-        .approxEq(&(try A.inverse()).transpose()));
+    try std.testing.expect(A.transpose().inverse().approxEq(&A.inverse().transpose()));
 }
 
 test "Changing one element of identity matrix affects tuple multiplication" {
