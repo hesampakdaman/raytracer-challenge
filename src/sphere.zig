@@ -131,7 +131,7 @@ test "A sphere's default transformation" {
     const s = Sphere{};
 
     // Then
-    try std.testing.expect(s.transformation.approxEq(&Mat4.identity()));
+    try expect.approxEqMatrix(4, &Mat4.identity(), &s.transform);
 }
 
 test "Changing a sphere's transformation" {
@@ -143,7 +143,7 @@ test "Changing a sphere's transformation" {
     s.setTransform(t);
 
     // Then
-    try std.testing.expect(s.transformation.approxEq(&t));
+    try expect.approxEqMatrix(4, &t, &s.transform);
 }
 
 test "Intersecting a scaled sphere with a ray" {
