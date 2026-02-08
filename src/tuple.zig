@@ -1,6 +1,7 @@
 const std = @import("std");
 const math = std.math;
 
+const expect = @import("expect.zig");
 const num = @import("num.zig");
 
 pub const Tuple = struct {
@@ -221,6 +222,10 @@ pub const Vector = struct {
             self.x() * other.y() - self.y() * other.x(),
         );
     }
+
+    pub fn reflect(self: Vector, normal: Vector) Vector {
+        return self.sub(normal.mul(2 * self.dot(normal)));
+    }
 };
 
 test "A tuple with w=1.0 is a point" {
@@ -428,4 +433,28 @@ test "The cross product of two vectors" {
     // Then
     try std.testing.expect(a.cross(b).approxEq(Vector.init(-1, 2, -1)));
     try std.testing.expect(b.cross(a).approxEq(Vector.init(1, -2, 1)));
+}
+
+test "Reflecting a vector approaching at 45°" {
+    // Given
+    const v = Vector.init(1, -1, 0);
+    const n = Vector.init(0, 1, 0);
+
+    // When
+    const r = v.reflect(n);
+
+    // Then
+    try expect.approxEqVector(Vector.init(1, 1, 0), r);
+}
+
+test "Reflecting a vector off a slanted surface" {
+    // Given
+    const v = Vector.init(0, -1, 0);
+    const n = Vector.init(num.sqrt2 / 2.0, num.sqrt2 / 2.0, 0);
+
+    // When
+    const r = v.reflect(n);
+
+    // Then
+    try expect.approxEqVector(Vector.init(1, 0, 0), r);
 }
