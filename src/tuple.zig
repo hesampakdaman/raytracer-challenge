@@ -84,34 +84,7 @@ pub const Tuple = struct {
     }
 
     pub fn div(self: Tuple, d: f64) Tuple {
-        return self.mul(1 / d);
-    }
-
-    pub fn magnitude(self: Tuple) f64 {
-        return math.sqrt(self.x() * self.x() +
-            self.y() * self.y() +
-            self.z() * self.z() +
-            self.w() * self.w());
-    }
-
-    pub fn normalize(self: Tuple) Tuple {
-        return self.div(self.magnitude());
-    }
-
-    pub fn dot(self: Tuple, other: Tuple) f64 {
-        return self.x() * other.x() +
-            self.y() * other.y() +
-            self.z() * other.z() +
-            self.w() * other.w();
-    }
-
-    pub fn cross(self: Tuple, other: Tuple) Tuple {
-        return Tuple.init(
-            self.y() * other.z() - self.z() * other.y(),
-            self.z() * other.x() - self.x() * other.z(),
-            self.x() * other.y() - self.y() * other.x(),
-            0,
-        );
+        return self.mul(1.0 / d);
     }
 };
 
@@ -123,7 +96,11 @@ pub const Point = struct {
     }
 
     fn fromTuple(t: Tuple) Point {
-        return .{ .tuple = t };
+        return Point.init(t.at(0), t.at(1), t.at(2));
+    }
+
+    pub fn zero() Point {
+        return Point.init(0, 0, 0);
     }
 
     pub fn at(self: Point, i: usize) f64 {
@@ -166,12 +143,28 @@ pub const Point = struct {
 pub const Vector = struct {
     tuple: Tuple,
 
-    pub fn init(x: f64, y: f64, z: f64) Vector {
-        return .{ .tuple = Tuple.init(x, y, z, 0) };
+    pub fn init(x_val: f64, y_val: f64, z_val: f64) Vector {
+        return .{ .tuple = Tuple.init(x_val, y_val, z_val, 0) };
     }
 
     fn fromTuple(t: Tuple) Vector {
-        return .{ .tuple = t };
+        return Vector.init(t.at(0), t.at(1), t.at(2));
+    }
+
+    pub fn zero() Vector {
+        return Vector.init(0, 0, 0);
+    }
+
+    pub fn x(self: Vector) f64 {
+        return self.tuple.x();
+    }
+
+    pub fn y(self: Vector) f64 {
+        return self.tuple.y();
+    }
+
+    pub fn z(self: Vector) f64 {
+        return self.tuple.z();
     }
 
     pub fn at(self: Vector, i: usize) f64 {
@@ -191,23 +184,43 @@ pub const Vector = struct {
     }
 
     pub fn mul(self: Vector, m: f64) Vector {
-        return Vector.fromTuple(self.tuple.mul(m));
+        return Vector.init(
+            self.x() * m,
+            self.y() * m,
+            self.z() * m,
+        );
+    }
+
+    pub fn div(self: Vector, d: f64) Vector {
+        return Vector.init(
+            self.x() / d,
+            self.y() / d,
+            self.z() / d,
+        );
     }
 
     pub fn magnitude(self: Vector) f64 {
-        return self.tuple.magnitude();
+        return math.sqrt(self.x() * self.x() +
+            self.y() * self.y() +
+            self.z() * self.z());
     }
 
     pub fn normalize(self: Vector) Vector {
-        return Vector.fromTuple(self.tuple.normalize());
+        return self.div(self.magnitude());
     }
 
     pub fn dot(self: Vector, other: Vector) f64 {
-        return self.tuple.dot(other.tuple);
+        return self.x() * other.x() +
+            self.y() * other.y() +
+            self.z() * other.z();
     }
 
     pub fn cross(self: Vector, other: Vector) Vector {
-        return Vector.fromTuple(self.tuple.cross(other.tuple));
+        return Vector.init(
+            self.y() * other.z() - self.z() * other.y(),
+            self.z() * other.x() - self.x() * other.z(),
+            self.x() * other.y() - self.y() * other.x(),
+        );
     }
 };
 
