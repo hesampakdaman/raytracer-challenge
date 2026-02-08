@@ -12,7 +12,7 @@ pub const Mat2 = Matrix(2);
 pub const Mat3 = Matrix(3);
 pub const Mat4 = Matrix(4);
 
-fn Matrix(comptime N: usize) type {
+pub fn Matrix(comptime N: usize) type {
     return struct {
         const Self = @This();
         data: [N][N]f64,
