@@ -1,6 +1,7 @@
 const std = @import("std");
 
-const EPSILON = @import("core.zig").EPSILON;
+const num = @import("num.zig");
+
 const Sphere = @import("sphere.zig").Sphere;
 
 pub const Intersection = struct {
@@ -60,7 +61,7 @@ test "An intersection encapsulates t and object" {
     const i = Intersection{ .t = 3.5, .object = &s };
 
     // Then
-    try std.testing.expectApproxEqAbs(3.5, i.t, EPSILON);
+    try std.testing.expectApproxEqAbs(3.5, i.t, num.epsilon);
     try std.testing.expectEqual(&s, i.object);
 }
 
@@ -75,8 +76,8 @@ test "Aggregating intersections" {
 
     // Then
     try std.testing.expectEqual(2, xs.count);
-    try std.testing.expectApproxEqAbs(1, xs.items[0].t, EPSILON);
-    try std.testing.expectApproxEqAbs(2, xs.items[1].t, EPSILON);
+    try std.testing.expectApproxEqAbs(1, xs.items[0].t, num.epsilon);
+    try std.testing.expectApproxEqAbs(2, xs.items[1].t, num.epsilon);
 }
 
 test "The hit, when all intersections have positive t" {

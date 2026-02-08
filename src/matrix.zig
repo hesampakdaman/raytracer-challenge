@@ -1,13 +1,14 @@
 const std = @import("std");
 const math = std.math;
-const assert = std.debug.assert;
+
+const num = @import("num.zig");
+
 const Allocator = std.mem.Allocator;
+const assert = std.debug.assert;
 
-const Tuple = @import("tuple.zig").Tuple;
 const Point = @import("tuple.zig").Point;
+const Tuple = @import("tuple.zig").Tuple;
 const Vector = @import("tuple.zig").Vector;
-const EPSILON = @import("core.zig").EPSILON;
-
 pub const Mat2 = Matrix(2);
 pub const Mat3 = Matrix(3);
 pub const Mat4 = Matrix(4);
@@ -40,7 +41,7 @@ pub fn Matrix(comptime N: usize) type {
         pub fn approxEq(self: *const Self, other: *const Self) bool {
             for (0..N) |i| {
                 for (0..N) |j| {
-                    if (!std.math.approxEqAbs(f64, self.at(i, j), other.at(i, j), EPSILON)) {
+                    if (!std.math.approxEqAbs(f64, self.at(i, j), other.at(i, j), num.epsilon)) {
                         return false;
                     }
                 }
@@ -143,12 +144,12 @@ pub fn Matrix(comptime N: usize) type {
         }
 
         pub fn invertible(self: *const Self) bool {
-            return !std.math.approxEqAbs(f64, self.determinant(), 0, EPSILON);
+            return !std.math.approxEqAbs(f64, self.determinant(), 0, num.epsilon);
         }
 
         pub fn inverse(self: *const Self) Self {
             const det = self.determinant();
-            if (std.math.approxEqAbs(f64, det, 0, EPSILON)) @panic("Matrix is not invertible");
+            if (std.math.approxEqAbs(f64, det, 0, num.epsilon)) @panic("Matrix is not invertible");
 
             var out: Self = undefined;
             for (0..N) |i| {
@@ -257,13 +258,13 @@ test "Constructing and inspecting a 4x4 matrix" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(1, M.at(0, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(4, M.at(0, 3), EPSILON);
-    try std.testing.expectApproxEqAbs(5.5, M.at(1, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(7.5, M.at(1, 2), EPSILON);
-    try std.testing.expectApproxEqAbs(11, M.at(2, 2), EPSILON);
-    try std.testing.expectApproxEqAbs(13.5, M.at(3, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(15.5, M.at(3, 2), EPSILON);
+    try std.testing.expectApproxEqAbs(1, M.at(0, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(4, M.at(0, 3), num.epsilon);
+    try std.testing.expectApproxEqAbs(5.5, M.at(1, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(7.5, M.at(1, 2), num.epsilon);
+    try std.testing.expectApproxEqAbs(11, M.at(2, 2), num.epsilon);
+    try std.testing.expectApproxEqAbs(13.5, M.at(3, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(15.5, M.at(3, 2), num.epsilon);
 }
 
 test "A 2x2 matrix ought to be representable" {
@@ -274,10 +275,10 @@ test "A 2x2 matrix ought to be representable" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(-3, M.at(0, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(5, M.at(0, 1), EPSILON);
-    try std.testing.expectApproxEqAbs(1, M.at(1, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(-2, M.at(1, 1), EPSILON);
+    try std.testing.expectApproxEqAbs(-3, M.at(0, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(5, M.at(0, 1), num.epsilon);
+    try std.testing.expectApproxEqAbs(1, M.at(1, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(-2, M.at(1, 1), num.epsilon);
 }
 
 test "A 3x3 matrix ought to be representable" {
@@ -289,9 +290,9 @@ test "A 3x3 matrix ought to be representable" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(-3, M.at(0, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(-2, M.at(1, 1), EPSILON);
-    try std.testing.expectApproxEqAbs(1, M.at(2, 2), EPSILON);
+    try std.testing.expectApproxEqAbs(-3, M.at(0, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(-2, M.at(1, 1), num.epsilon);
+    try std.testing.expectApproxEqAbs(1, M.at(2, 2), num.epsilon);
 }
 
 test "Matrix equality with identical matrices" {
@@ -425,7 +426,7 @@ test "Calculating the determinant of a 2x2 matrix" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(17, A.determinant(), EPSILON);
+    try std.testing.expectApproxEqAbs(17, A.determinant(), num.epsilon);
 }
 
 test "A submatrix of a 3x3 matrix is a 2x2 matrix" {
@@ -470,8 +471,8 @@ test "Calculating a minor of a 3x3 matrix" {
     const B = A.submatrix(1, 0);
 
     // Then
-    try std.testing.expectApproxEqAbs(25, B.determinant(), EPSILON);
-    try std.testing.expectApproxEqAbs(25, A.minor(1, 0), EPSILON);
+    try std.testing.expectApproxEqAbs(25, B.determinant(), num.epsilon);
+    try std.testing.expectApproxEqAbs(25, A.minor(1, 0), num.epsilon);
 }
 
 test "Calculating a cofactor of a 3x3 matrix" {
@@ -483,10 +484,10 @@ test "Calculating a cofactor of a 3x3 matrix" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(-12, A.minor(0, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(-12, A.cofactor(0, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(25, A.minor(1, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(-25, A.cofactor(1, 0), EPSILON);
+    try std.testing.expectApproxEqAbs(-12, A.minor(0, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(-12, A.cofactor(0, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(25, A.minor(1, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(-25, A.cofactor(1, 0), num.epsilon);
 }
 
 test "Calculating the determinant of a 3x3 matrix" {
@@ -498,10 +499,10 @@ test "Calculating the determinant of a 3x3 matrix" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(56, A.cofactor(0, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(12, A.cofactor(0, 1), EPSILON);
-    try std.testing.expectApproxEqAbs(-46, A.cofactor(0, 2), EPSILON);
-    try std.testing.expectApproxEqAbs(-196, A.determinant(), EPSILON);
+    try std.testing.expectApproxEqAbs(56, A.cofactor(0, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(12, A.cofactor(0, 1), num.epsilon);
+    try std.testing.expectApproxEqAbs(-46, A.cofactor(0, 2), num.epsilon);
+    try std.testing.expectApproxEqAbs(-196, A.determinant(), num.epsilon);
 }
 
 test "Calculating the determinant of a 4x4 matrix" {
@@ -514,11 +515,11 @@ test "Calculating the determinant of a 4x4 matrix" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(690, A.cofactor(0, 0), EPSILON);
-    try std.testing.expectApproxEqAbs(447, A.cofactor(0, 1), EPSILON);
-    try std.testing.expectApproxEqAbs(210, A.cofactor(0, 2), EPSILON);
-    try std.testing.expectApproxEqAbs(51, A.cofactor(0, 3), EPSILON);
-    try std.testing.expectApproxEqAbs(-4071, A.determinant(), EPSILON);
+    try std.testing.expectApproxEqAbs(690, A.cofactor(0, 0), num.epsilon);
+    try std.testing.expectApproxEqAbs(447, A.cofactor(0, 1), num.epsilon);
+    try std.testing.expectApproxEqAbs(210, A.cofactor(0, 2), num.epsilon);
+    try std.testing.expectApproxEqAbs(51, A.cofactor(0, 3), num.epsilon);
+    try std.testing.expectApproxEqAbs(-4071, A.determinant(), num.epsilon);
 }
 
 test "Testing an invertible matrix for invertibility" {
@@ -531,7 +532,7 @@ test "Testing an invertible matrix for invertibility" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(-2120, A.determinant(), EPSILON);
+    try std.testing.expectApproxEqAbs(-2120, A.determinant(), num.epsilon);
     try std.testing.expect(A.invertible());
 }
 
@@ -545,7 +546,7 @@ test "Testing a noninvertible matrix for invertibility" {
     });
 
     // Then
-    try std.testing.expectApproxEqAbs(0, A.determinant(), EPSILON);
+    try std.testing.expectApproxEqAbs(0, A.determinant(), num.epsilon);
     try std.testing.expect(!A.invertible());
 }
 
@@ -560,11 +561,11 @@ test "Calculating the inverse of a matrix" {
     const B = A.inverse();
 
     // Then
-    try std.testing.expectApproxEqAbs(532, A.determinant(), EPSILON);
-    try std.testing.expectApproxEqAbs(-160, A.cofactor(2, 3), EPSILON);
-    try std.testing.expectApproxEqAbs(-160.0 / 532.0, B.at(3, 2), EPSILON);
-    try std.testing.expectApproxEqAbs(105, A.cofactor(3, 2), EPSILON);
-    try std.testing.expectApproxEqAbs(105.0 / 532.0, B.at(2, 3), EPSILON);
+    try std.testing.expectApproxEqAbs(532, A.determinant(), num.epsilon);
+    try std.testing.expectApproxEqAbs(-160, A.cofactor(2, 3), num.epsilon);
+    try std.testing.expectApproxEqAbs(-160.0 / 532.0, B.at(3, 2), num.epsilon);
+    try std.testing.expectApproxEqAbs(105, A.cofactor(3, 2), num.epsilon);
+    try std.testing.expectApproxEqAbs(105.0 / 532.0, B.at(2, 3), num.epsilon);
 
     try std.testing.expect(B.approxEq(&Mat4.init(.{
         .{ 0.21805, 0.45113, 0.24060, -0.04511 },

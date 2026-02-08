@@ -1,9 +1,9 @@
 const std = @import("std");
 const math = std.math;
 
+const num = @import("num.zig");
 const tsfm = @import("transformation.zig");
 
-const EPSILON = @import("core.zig").EPSILON;
 const Point = @import("tuple.zig").Point;
 const Vector = @import("tuple.zig").Vector;
 const Mat4 = @import("matrix.zig").Mat4;

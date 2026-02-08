@@ -1,10 +1,8 @@
 const std = @import("std");
 
-const core = @import("core.zig");
-const EPSILON = core.EPSILON;
+const num = @import("num.zig");
 
-const tuple = @import("tuple.zig");
-const Tuple = tuple.Tuple;
+const Tuple = @import("tuple.zig").Tuple;
 
 pub const Color = struct {
     t: Tuple,
@@ -58,9 +56,9 @@ test "Colors are (red, green, blue) tuples" {
     const c = Color.init(-0.5, 0.4, 1.7);
 
     // Then
-    try std.testing.expectApproxEqAbs(-0.5, c.red(), EPSILON);
-    try std.testing.expectApproxEqAbs(0.4, c.green(), EPSILON);
-    try std.testing.expectApproxEqAbs(1.7, c.blue(), EPSILON);
+    try std.testing.expectApproxEqAbs(-0.5, c.red(), num.epsilon);
+    try std.testing.expectApproxEqAbs(0.4, c.green(), num.epsilon);
+    try std.testing.expectApproxEqAbs(1.7, c.blue(), num.epsilon);
 }
 
 test "Adding colors" {

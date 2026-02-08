@@ -1,8 +1,7 @@
 const std = @import("std");
 const math = std.math;
 
-const core = @import("core.zig");
-const EPSILON = core.EPSILON;
+const num = @import("num.zig");
 
 pub const Tuple = struct {
     data: [4]f64,
@@ -36,18 +35,18 @@ pub const Tuple = struct {
     }
 
     pub fn isPoint(self: Tuple) bool {
-        return math.approxEqAbs(f64, self.w(), 1.0, EPSILON);
+        return math.approxEqAbs(f64, self.w(), 1.0, num.epsilon);
     }
 
     pub fn isVector(self: Tuple) bool {
-        return math.approxEqAbs(f64, self.w(), 0.0, EPSILON);
+        return math.approxEqAbs(f64, self.w(), 0.0, num.epsilon);
     }
 
     pub fn approxEq(self: Tuple, other: Tuple) bool {
-        const x_ok = math.approxEqAbs(f64, self.x(), other.x(), EPSILON);
-        const y_ok = math.approxEqAbs(f64, self.y(), other.y(), EPSILON);
-        const z_ok = math.approxEqAbs(f64, self.z(), other.z(), EPSILON);
-        const w_ok = math.approxEqAbs(f64, self.w(), other.w(), EPSILON);
+        const x_ok = math.approxEqAbs(f64, self.x(), other.x(), num.epsilon);
+        const y_ok = math.approxEqAbs(f64, self.y(), other.y(), num.epsilon);
+        const z_ok = math.approxEqAbs(f64, self.z(), other.z(), num.epsilon);
+        const w_ok = math.approxEqAbs(f64, self.w(), other.w(), num.epsilon);
 
         return x_ok and y_ok and z_ok and w_ok;
     }
@@ -229,10 +228,10 @@ test "A tuple with w=1.0 is a point" {
     const a = Tuple.init(4.3, -4.2, 3.1, 1.0);
 
     // Then
-    try std.testing.expectApproxEqAbs(4.3, a.x(), EPSILON);
-    try std.testing.expectApproxEqAbs(-4.2, a.y(), EPSILON);
-    try std.testing.expectApproxEqAbs(3.1, a.z(), EPSILON);
-    try std.testing.expectApproxEqAbs(1.0, a.w(), EPSILON);
+    try std.testing.expectApproxEqAbs(4.3, a.x(), num.epsilon);
+    try std.testing.expectApproxEqAbs(-4.2, a.y(), num.epsilon);
+    try std.testing.expectApproxEqAbs(3.1, a.z(), num.epsilon);
+    try std.testing.expectApproxEqAbs(1.0, a.w(), num.epsilon);
     try std.testing.expect(a.isPoint());
     try std.testing.expect(!a.isVector());
 }
@@ -242,10 +241,10 @@ test "A tuple with w=0 is a vector" {
     const a = Tuple.init(4.3, -4.2, 3.1, 0.0);
 
     // Then
-    try std.testing.expectApproxEqAbs(4.3, a.x(), EPSILON);
-    try std.testing.expectApproxEqAbs(-4.2, a.y(), EPSILON);
-    try std.testing.expectApproxEqAbs(3.1, a.z(), EPSILON);
-    try std.testing.expectApproxEqAbs(0.0, a.w(), EPSILON);
+    try std.testing.expectApproxEqAbs(4.3, a.x(), num.epsilon);
+    try std.testing.expectApproxEqAbs(-4.2, a.y(), num.epsilon);
+    try std.testing.expectApproxEqAbs(3.1, a.z(), num.epsilon);
+    try std.testing.expectApproxEqAbs(0.0, a.w(), num.epsilon);
     try std.testing.expect(!a.isPoint());
     try std.testing.expect(a.isVector());
 }
@@ -348,7 +347,7 @@ test "Computing the magnitude of Vector.init(1, 0, 0)" {
     const v = Vector.init(1, 0, 0);
 
     // Then
-    try std.testing.expectApproxEqAbs(1, v.magnitude(), EPSILON);
+    try std.testing.expectApproxEqAbs(1, v.magnitude(), num.epsilon);
 }
 
 test "Computing the magnitude of vector(0, 1, 0)" {
@@ -356,7 +355,7 @@ test "Computing the magnitude of vector(0, 1, 0)" {
     const v = Vector.init(0, 1, 0);
 
     // Then
-    try std.testing.expectApproxEqAbs(1, v.magnitude(), EPSILON);
+    try std.testing.expectApproxEqAbs(1, v.magnitude(), num.epsilon);
 }
 
 test "Computing the magnitude of vector(0, 0, 1)" {
@@ -364,7 +363,7 @@ test "Computing the magnitude of vector(0, 0, 1)" {
     const v = Vector.init(0, 0, 1);
 
     // Then
-    try std.testing.expectApproxEqAbs(1, v.magnitude(), EPSILON);
+    try std.testing.expectApproxEqAbs(1, v.magnitude(), num.epsilon);
 }
 
 test "Computing the magnitude of vector(1, 2, 3)" {
@@ -372,7 +371,7 @@ test "Computing the magnitude of vector(1, 2, 3)" {
     const v = Vector.init(1, 2, 3);
 
     // Then
-    try std.testing.expectApproxEqAbs(math.sqrt(14.0), v.magnitude(), EPSILON);
+    try std.testing.expectApproxEqAbs(math.sqrt(14.0), v.magnitude(), num.epsilon);
 }
 
 test "Computing the magnitude of vector(-1, -2, -3)" {
@@ -380,7 +379,7 @@ test "Computing the magnitude of vector(-1, -2, -3)" {
     const v = Vector.init(-1, -2, -3);
 
     // Then
-    try std.testing.expectApproxEqAbs(math.sqrt(14.0), v.magnitude(), EPSILON);
+    try std.testing.expectApproxEqAbs(math.sqrt(14.0), v.magnitude(), num.epsilon);
 }
 
 test "Normalizing vector(4, 0, 0) gives (1, 0, 0)" {
@@ -409,7 +408,7 @@ test "The magnitude of a normalized vector" {
     const norm = v.normalize();
 
     // Then
-    try std.testing.expectApproxEqAbs(1, norm.magnitude(), EPSILON);
+    try std.testing.expectApproxEqAbs(1, norm.magnitude(), num.epsilon);
 }
 
 test "The dot product of two tuples" {
@@ -418,7 +417,7 @@ test "The dot product of two tuples" {
     const b = Vector.init(2, 3, 4);
 
     // Then
-    try std.testing.expectApproxEqAbs(20, a.dot(b), EPSILON);
+    try std.testing.expectApproxEqAbs(20, a.dot(b), num.epsilon);
 }
 
 test "The cross product of two vectors" {

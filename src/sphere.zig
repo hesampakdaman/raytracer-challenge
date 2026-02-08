@@ -1,9 +1,10 @@
 const std = @import("std");
 const math = std.math;
 
+const expect = @import("expect.zig");
+const num = @import("num.zig");
 const tsfm = @import("transformation.zig");
 
-const EPSILON = @import("core.zig").EPSILON;
 const Intersection = @import("intersection.zig").Intersection;
 const Intersections = @import("intersection.zig").Intersections;
 const Point = @import("tuple.zig").Point;
@@ -53,8 +54,8 @@ test "A ray intersects a sphere at two points" {
 
     // Then
     try std.testing.expectEqual(2, xs.count);
-    try std.testing.expectApproxEqAbs(4.0, xs.items[0].t, EPSILON);
-    try std.testing.expectApproxEqAbs(6.0, xs.items[1].t, EPSILON);
+    try std.testing.expectApproxEqAbs(4.0, xs.items[0].t, num.epsilon);
+    try std.testing.expectApproxEqAbs(6.0, xs.items[1].t, num.epsilon);
 }
 
 test "A ray intersects a sphere at a tangent" {
@@ -67,8 +68,8 @@ test "A ray intersects a sphere at a tangent" {
 
     // Then
     try std.testing.expectEqual(2, xs.count);
-    try std.testing.expectApproxEqAbs(5.0, xs.items[0].t, EPSILON);
-    try std.testing.expectApproxEqAbs(5.0, xs.items[1].t, EPSILON);
+    try std.testing.expectApproxEqAbs(5.0, xs.items[0].t, num.epsilon);
+    try std.testing.expectApproxEqAbs(5.0, xs.items[1].t, num.epsilon);
 }
 
 test "A ray misses a sphere" {
@@ -93,8 +94,8 @@ test "A ray originates inside a sphere" {
 
     // Then
     try std.testing.expectEqual(2, xs.count);
-    try std.testing.expectApproxEqAbs(-1.0, xs.items[0].t, EPSILON);
-    try std.testing.expectApproxEqAbs(1.0, xs.items[1].t, EPSILON);
+    try std.testing.expectApproxEqAbs(-1.0, xs.items[0].t, num.epsilon);
+    try std.testing.expectApproxEqAbs(1.0, xs.items[1].t, num.epsilon);
 }
 
 test "A sphere is behind a ray" {
@@ -107,8 +108,8 @@ test "A sphere is behind a ray" {
 
     // Then
     try std.testing.expectEqual(2, xs.count);
-    try std.testing.expectApproxEqAbs(-6.0, xs.items[0].t, EPSILON);
-    try std.testing.expectApproxEqAbs(-4.0, xs.items[1].t, EPSILON);
+    try std.testing.expectApproxEqAbs(-6.0, xs.items[0].t, num.epsilon);
+    try std.testing.expectApproxEqAbs(-4.0, xs.items[1].t, num.epsilon);
 }
 
 test "Intersect sets the object on the intersection" {
@@ -156,8 +157,8 @@ test "Intersecting a scaled sphere with a ray" {
 
     // Then
     try std.testing.expectEqual(2, xs.count);
-    try std.testing.expectApproxEqAbs(3, xs.items[0].t, EPSILON);
-    try std.testing.expectApproxEqAbs(7, xs.items[1].t, EPSILON);
+    try std.testing.expectApproxEqAbs(3, xs.items[0].t, num.epsilon);
+    try std.testing.expectApproxEqAbs(7, xs.items[1].t, num.epsilon);
 }
 
 test "Intersecting a translated sphere with a ray" {

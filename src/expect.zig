@@ -1,11 +1,11 @@
 const std = @import("std");
 
-const tuple = @import("tuple.zig");
+const tup = @import("tuple.zig");
+const num = @import("num.zig");
 
-const EPSILON = @import("core.zig").EPSILON;
-const Point = tuple.Point;
-const Tuple = tuple.Tuple;
-const Vector = tuple.Vector;
+const Point = tup.Point;
+const Tuple = tup.Tuple;
+const Vector = tup.Vector;
 const Matrix = @import("matrix.zig").Matrix;
 
 pub fn approxEqTuple(expected: Tuple, actual: Tuple) !void {
@@ -39,7 +39,7 @@ pub fn approxEqMatrix(comptime N: usize, expected: *const Matrix(N), actual: *co
             for (0..N) |j| {
                 const av = expected.at(i, j);
                 const bv = actual.at(i, j);
-                if (!std.math.approxEqAbs(f64, av, bv, EPSILON)) {
+                if (!std.math.approxEqAbs(f64, av, bv, num.epsilon)) {
                     std.debug.print(
                         \\Matrix mismatch at ({d}, {d})
                         \\  got:    {d}
