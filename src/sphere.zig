@@ -172,3 +172,48 @@ test "Intersecting a translated sphere with a ray" {
     // Then
     try std.testing.expectEqual(0, xs.count);
 }
+
+test "Chapter 5: Putting it together" {
+    const Canvas = @import("canvas.zig").Canvas;
+    const Color = @import("color.zig").Color;
+
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const parent = try tmp.dir.realpathAlloc(allocator, ".");
+    defer allocator.free(parent);
+
+    const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "test.ppm" });
+    defer allocator.free(ppm_file_path);
+
+    const ray_origin = Point.init(0, 0, -5);
+    const wall_z: f64 = 10;
+    const wall_size: f64 = 7;
+
+    const canvas_pixels: usize = 100;
+    const pixel_size = wall_size / @as(f64, canvas_pixels);
+    const half = wall_size / 2.0;
+
+    var canvas = try Canvas.init(allocator, canvas_pixels, canvas_pixels);
+    defer canvas.deinit();
+
+    const color = Color.init(1, 0, 0);
+    var shape = Sphere{};
+
+    for (0..canvas_pixels) |y| {
+        const world_y = half - pixel_size * @as(f64, @floatFromInt(y));
+
+        for (0..canvas_pixels) |x| {
+            const world_x = -half + pixel_size * @as(f64, @floatFromInt(x));
+            const position = Point.init(world_x, world_y, wall_z);
+
+            const r = Ray.init(ray_origin, position.sub(ray_origin).normalize());
+            const xs = shape.intersect(r);
+
+            if (xs.hit()) |_| canvas.writePixel(x, y, color);
+        }
+    }
+
+    try canvas.savePpm(ppm_file_path);
+}
