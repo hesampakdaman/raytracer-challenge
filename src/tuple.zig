@@ -44,12 +44,10 @@ pub const Tuple = struct {
     }
 
     pub fn approxEq(self: Tuple, other: Tuple) bool {
-        const x_ok = math.approxEqAbs(f64, self.x(), other.x(), num.epsilon);
-        const y_ok = math.approxEqAbs(f64, self.y(), other.y(), num.epsilon);
-        const z_ok = math.approxEqAbs(f64, self.z(), other.z(), num.epsilon);
-        const w_ok = math.approxEqAbs(f64, self.w(), other.w(), num.epsilon);
-
-        return x_ok and y_ok and z_ok and w_ok;
+        return math.approxEqAbs(f64, self.x(), other.x(), num.epsilon) and
+            math.approxEqAbs(f64, self.y(), other.y(), num.epsilon) and
+            math.approxEqAbs(f64, self.z(), other.z(), num.epsilon) and
+            math.approxEqAbs(f64, self.w(), other.w(), num.epsilon);
     }
 
     pub fn add(self: Tuple, other: Tuple) Tuple {
