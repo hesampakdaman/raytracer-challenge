@@ -11,8 +11,12 @@ pub const Color = struct {
         return .{ .t = Tuple.init(r, g, b, 0) };
     }
 
-    pub fn black() Color {
-        return .{ .t = Tuple.zero() };
+    pub fn Black() Color {
+        return .{ .t = Tuple.zeros() };
+    }
+
+    pub fn White() Color {
+        return .{ .t = Tuple.ones() };
     }
 
     pub fn red(self: Color) f64 {
