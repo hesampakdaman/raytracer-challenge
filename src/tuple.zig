@@ -11,8 +11,12 @@ pub const Tuple = struct {
         return .{ .data = .{ x_val, y_val, z_val, w_val } };
     }
 
-    pub fn zero() Tuple {
+    pub fn zeros() Tuple {
         return Tuple.init(0, 0, 0, 0);
+    }
+
+    pub fn ones() Tuple {
+        return Tuple.init(1, 1, 1, 1);
     }
 
     pub fn at(self: Tuple, i: usize) f64 {
