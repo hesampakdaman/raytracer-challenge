@@ -83,8 +83,7 @@ pub fn Matrix(comptime N: usize) type {
                 }
             }
             return switch (@TypeOf(t)) {
-                Point => Point.init(data[0], data[1], data[2]),
-                Vector => Vector.init(data[0], data[1], data[2]),
+                Point, Vector => @TypeOf(t).init(data[0], data[1], data[2]),
                 Tuple => Tuple.init(data[0], data[1], data[2], data[3]),
                 else => unreachable,
             };

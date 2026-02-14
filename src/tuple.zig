@@ -224,6 +224,10 @@ pub const Vector = struct {
     pub fn reflect(self: Vector, normal: Vector) Vector {
         return self.sub(normal.mul(2 * self.dot(normal)));
     }
+
+    pub fn negate(self: Vector) Vector {
+        return Vector.init(-self.x(), -self.y(), -self.z());
+    }
 };
 
 test "A tuple with w=1.0 is a point" {

@@ -3,10 +3,12 @@ const std = @import("std");
 const tup = @import("tuple.zig");
 const num = @import("num.zig");
 
+const Color = @import("color.zig").Color;
+const Material = @import("material.zig").Material;
+const Matrix = @import("matrix.zig").Matrix;
 const Point = tup.Point;
 const Tuple = tup.Tuple;
 const Vector = tup.Vector;
-const Matrix = @import("matrix.zig").Matrix;
 
 pub fn approxEqTuple(expected: Tuple, actual: Tuple) !void {
     if (!expected.approxEq(actual)) {
@@ -33,6 +35,10 @@ pub fn approxEqVector(expected: Vector, actual: Vector) !void {
     return approxEqTuple(expected.tuple, actual.tuple);
 }
 
+pub fn approxEqColor(expected: Color, actual: Color) !void {
+    return approxEqTuple(expected.t, actual.t);
+}
+
 pub fn approxEqMatrix(comptime N: usize, expected: *const Matrix(N), actual: *const Matrix(N)) !void {
     if (!expected.approxEq(actual)) {
         for (0..N) |i| {
@@ -51,6 +57,30 @@ pub fn approxEqMatrix(comptime N: usize, expected: *const Matrix(N), actual: *co
                 }
             }
         }
+        return error.TestExpectedApproxEq;
+    }
+}
+
+pub fn approxEqMaterial(expected: Material, actual: Material) !void {
+    if (!expected.approxEq(actual)) {
+        std.debug.print(
+            \\ Material Mismatch
+            \\  field      expected        actual          diff
+            \\  color:     {d: >10.5}      {d: >10.5}      {d: >10.5} (avg)
+            \\  ambient:   {d: >10.5}      {d: >10.5}      {d: >10.5}
+            \\  diffuse:   {d: >10.5}      {d: >10.5}      {d: >10.5}
+            \\  specular:  {d: >10.5}      {d: >10.5}      {d: >10.5}
+            \\  shininess: {d: >10.5}      {d: >10.5}      {d: >10.5}
+            \\
+        , .{
+            // Color summary (simplified as a single diff check)
+            expected.color.t.x(), actual.color.t.x(), expected.color.t.x() - actual.color.t.x(),
+            // f64 fields
+            expected.ambient,     actual.ambient,     expected.ambient - actual.ambient,
+            expected.diffuse,     actual.diffuse,     expected.diffuse - actual.diffuse,
+            expected.specular,    actual.specular,    expected.specular - actual.specular,
+            expected.shininess,   actual.shininess,   expected.shininess - actual.shininess,
+        });
         return error.TestExpectedApproxEq;
     }
 }

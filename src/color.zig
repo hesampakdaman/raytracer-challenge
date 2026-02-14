@@ -11,6 +11,10 @@ pub const Color = struct {
         return .{ .t = Tuple.init(r, g, b, 0) };
     }
 
+    pub fn black() Color {
+        return .{ .t = Tuple.zero() };
+    }
+
     pub fn red(self: Color) f64 {
         return self.t.x();
     }

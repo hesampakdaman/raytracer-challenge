@@ -248,6 +248,7 @@ test "Chained transformations using a fluent API" {
 test "Chapter 4: Putting it together" {
     const allocator = std.testing.allocator;
     var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
 
     const parent = try tmp.dir.realpathAlloc(allocator, ".");
     defer allocator.free(parent);
