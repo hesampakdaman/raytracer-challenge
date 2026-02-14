@@ -318,7 +318,7 @@ test "Chapter 6: Putting it together" {
 
     const allocator = std.testing.allocator;
     var tmp = std.testing.tmpDir(.{});
-    // defer tmp.cleanup();
+    defer tmp.cleanup();
 
     const parent = try tmp.dir.realpathAlloc(allocator, ".");
     defer allocator.free(parent);
@@ -337,8 +337,9 @@ test "Chapter 6: Putting it together" {
     var canvas = try Canvas.init(allocator, canvas_pixels, canvas_pixels);
     defer canvas.deinit();
 
-    var shape = Sphere{};
-    shape.material.color = Color.init(1, 0.2, 1);
+    var sphere = Sphere{};
+    sphere.material = Material{};
+    sphere.material.color = Color.init(1, 0.2, 1);
 
     const light_position = Point.init(-10, 10, -10);
     const light_color = Color.init(1, 1, 1);
@@ -351,13 +352,13 @@ test "Chapter 6: Putting it together" {
             const world_x = -half + pixel_size * @as(f64, @floatFromInt(x));
             const position = Point.init(world_x, world_y, wall_z);
 
-            const r = Ray.init(ray_origin, position.sub(ray_origin).normalize());
-            const xs = shape.intersect(r);
+            const ray = Ray.init(ray_origin, position.sub(ray_origin).normalize());
+            const xs = sphere.intersect(ray);
 
             if (xs.hit()) |hit| {
-                const point = r.position(hit.t);
+                const point = ray.position(hit.t);
                 const normal = hit.object.normalAt(point);
-                const eye = r.direction.negate();
+                const eye = ray.direction.negate();
                 const color = hit.object.material.lighting(light, point, eye, normal);
                 canvas.writePixel(x, y, color);
             }
