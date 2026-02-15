@@ -1,10 +1,8 @@
 const std = @import("std");
 const math = std.math;
+const assert = std.debug.assert;
 
 const num = @import("num.zig");
-
-const Allocator = std.mem.Allocator;
-const assert = std.debug.assert;
 
 const Point = @import("tuple.zig").Point;
 const Tuple = @import("tuple.zig").Tuple;
