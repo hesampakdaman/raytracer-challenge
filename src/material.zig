@@ -19,19 +19,23 @@ pub const Material = struct {
     shininess: f32 = 200.0,
 
     pub fn lighting(self: Material, light: PointLight, point: Point, eyev: Vector, normalv: Vector) Color {
+        // ambient light is uniformly applied
         const effective_color = self.color.hadamard_product(light.intensity);
-        const lightv = light.position.sub(point).normalize();
         const ambient = effective_color.mul(self.ambient);
-        const light_dot_normal = lightv.dot(normalv);
 
+        // diffusion only depends on the normal of the material and
+        // the light direction
+        const lightv = light.position.sub(point).normalize();
+        const light_dot_normal = lightv.dot(normalv);
         // if light is on other side of surface both diffuse and
         // specular contribute nothing
         if (light_dot_normal < 0) return ambient;
-
         const diffuse = effective_color.mul(self.diffuse).mul(light_dot_normal);
+
+        // specular only depends on the reflection of the light source
+        // and the eye
         const reflectv = lightv.negate().reflect(normalv);
         const reflect_dot_eye = reflectv.dot(eyev);
-
         // if the eye doesn't catch rays from the reflection vector
         // then specular doesn't contribute
         if (reflect_dot_eye <= 0) return ambient.add(diffuse);
