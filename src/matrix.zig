@@ -68,12 +68,7 @@ pub fn Matrix(comptime N: usize) type {
             return out;
         }
 
-        pub fn apply(self: *const Matrix(4), t: anytype) switch (@TypeOf(t)) {
-            Point => Point,
-            Vector => Vector,
-            Tuple => Tuple,
-            else => @compileError("Matrix.apply expects Point, Vector, or Tuple"),
-        } {
+        pub fn apply(self: *const Matrix(4), t: anytype) @TypeOf(t) {
             var data: [4]f64 = .{ 0, 0, 0, 0 };
             for (0..N) |i| {
                 for (0..N) |j| {
@@ -83,7 +78,7 @@ pub fn Matrix(comptime N: usize) type {
             return switch (@TypeOf(t)) {
                 Point, Vector => @TypeOf(t).init(data[0], data[1], data[2]),
                 Tuple => Tuple.init(data[0], data[1], data[2], data[3]),
-                else => unreachable,
+                else => @compileError("Matrix.apply expects Point, Vector, or Tuple"),
             };
         }
 
