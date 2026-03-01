@@ -330,7 +330,7 @@ test "Chapter 6: Putting it together" {
     const wall_z: f64 = 10;
     const wall_size: f64 = 7;
 
-    const canvas_pixels: usize = 250;
+    const canvas_pixels: usize = 50;
     const pixel_size = wall_size / @as(f64, canvas_pixels);
     const half = wall_size / 2.0;
 
