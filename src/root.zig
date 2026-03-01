@@ -10,6 +10,7 @@ pub const sphere = @import("sphere.zig");
 pub const intersection = @import("intersection.zig");
 pub const light = @import("light.zig");
 pub const material = @import("material.zig");
+pub const world = @import("world.zig");
 
 test {
     std.testing.refAllDecls(@This());

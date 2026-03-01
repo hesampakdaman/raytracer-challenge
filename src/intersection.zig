@@ -1,7 +1,7 @@
 const std = @import("std");
+const assert = std.debug.assert;
 
 const num = @import("num.zig");
-
 const Sphere = @import("sphere.zig").Sphere;
 
 pub const Intersection = struct {
@@ -33,6 +33,19 @@ pub const Intersections = struct {
 
         var out = Intersections{ .items = undefined, .count = 0 };
         inline for (xs) |x| {
+            out.items[out.count] = x;
+            out.count += 1;
+        }
+
+        std.sort.insertion(Intersection, out.items[0..out.count], {}, Intersection.lessThan);
+        return out;
+    }
+
+    pub fn fromSlice(xs: []Intersection) Intersections {
+        assert(xs.len <= 32);
+
+        var out = Intersections{ .items = undefined, .count = 0 };
+        for (xs) |x| {
             out.items[out.count] = x;
             out.count += 1;
         }

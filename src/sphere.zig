@@ -18,6 +18,13 @@ pub const Sphere = struct {
     transform: Mat4 = Mat4.identity(),
     material: Material = Material{},
 
+    pub fn init(m: Material, t: Mat4) Sphere {
+        return Sphere{
+            .transform = t,
+            .material = m,
+        };
+    }
+
     pub fn intersect(self: *const Sphere, r: Ray) Intersections {
         const inv = self.transform.inverse();
         const ray = r.transform(inv);
@@ -54,6 +61,11 @@ pub const Sphere = struct {
             .transpose()
             .apply(object_normal)
             .normalize();
+    }
+
+    pub fn approxEq(self: *const Sphere, other: *const Sphere) bool {
+        return self.transform.approxEq(&other.transform) and
+            self.material.approxEq(other.material);
     }
 };
 
