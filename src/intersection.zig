@@ -1,8 +1,20 @@
 const std = @import("std");
 const assert = std.debug.assert;
 
+const expect = @import("expect.zig");
 const num = @import("num.zig");
+const Point = @import("tuple.zig").Point;
+const Ray = @import("ray.zig").Ray;
 const Sphere = @import("sphere.zig").Sphere;
+const Vector = @import("tuple.zig").Vector;
+
+pub const Computations = struct {
+    t: f64,
+    object: *const Sphere,
+    point: Point,
+    eyev: Vector,
+    normalv: Vector,
+};
 
 pub const Intersection = struct {
     t: f64,
@@ -10,6 +22,17 @@ pub const Intersection = struct {
 
     pub fn init(t: f64, object: *const Sphere) Intersection {
         return .{ .t = t, .object = object };
+    }
+
+    pub fn prepareComputations(self: Intersection, r: Ray) Computations {
+        const world_point = r.position(self.t);
+        return Computations{
+            .t = self.t,
+            .object = self.object,
+            .point = world_point,
+            .eyev = r.direction.negate(),
+            .normalv = self.object.normalAt(world_point),
+        };
     }
 
     fn lessThan(context: void, a: Intersection, b: Intersection) bool {
@@ -149,4 +172,20 @@ test "The hit is always the lowest non-negative intersection" {
 
     // Then
     try std.testing.expectEqual(i_4, i);
+}
+
+test "Precomputing the state of an intersection" {
+    // Given
+    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
+    const shape = Sphere{};
+    const i = Intersection.init(4, &shape);
+
+    // When
+    const comps = i.prepareComputations(r);
+
+    // Then
+    try std.testing.expectEqual(i.object, comps.object);
+    try expect.approxEqPoint(Point.init(0, 0, -1), comps.point);
+    try expect.approxEqVector(Vector.init(0, 0, -1), comps.eyev);
+    try expect.approxEqVector(Vector.init(0, 0, -1), comps.normalv);
 }
