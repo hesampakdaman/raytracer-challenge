@@ -59,11 +59,11 @@ pub const World = struct {
         return false;
     }
 
-    pub fn intersectWorld(self: *const World, r: Ray) Intersections {
+    pub fn intersectWorld(self: *const World, r: *const Ray) Intersections {
         var out: [32]Intersection = undefined;
         var n_objs: usize = 0;
         for (self.objects.items) |obj| {
-            const xs = obj.intersect(r);
+            const xs = obj.intersect(r.*);
             for (0..xs.count) |i| {
                 out[n_objs] = xs.items[i];
                 n_objs += 1;
@@ -81,6 +81,15 @@ pub const World = struct {
             comps.eyev,
             comps.normalv,
         );
+    }
+
+    pub fn colorAt(self: *const World, r: *const Ray) Color {
+        const xs = self.intersectWorld(r);
+        if (xs.hit()) |x| {
+            const comps = x.prepareComputations(r.*);
+            return self.shadeHit(&comps);
+        }
+        return Color.Black();
     }
 };
 
@@ -123,7 +132,7 @@ test "Intersect a world with a ray" {
     const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
 
     // When
-    const xs = w.intersectWorld(r);
+    const xs = w.intersectWorld(&r);
 
     // Then
     try std.testing.expectEqual(4, xs.count);
@@ -164,4 +173,17 @@ test "Shading an intersection from the inside" {
 
     // Then
     try expect.approxEqColor(Color.init(0.90498, 0.90498, 0.90498), c);
+}
+
+test "The color when a ray misses" {
+    // Given
+    var w = try World.default(std.testing.allocator);
+    defer w.deinit();
+    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 1, 0));
+
+    // When
+    const c = w.colorAt(&r);
+
+    // Then
+    try expect.approxEqColor(Color.Black(), c);
 }
