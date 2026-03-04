@@ -1,11 +1,15 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const assert = std.debug.assert;
 
-const num = @import("num.zig");
 const Color = @import("color.zig").Color;
-const Intersection = @import("intersection.zig").Intersection;
-const Intersections = @import("intersection.zig").Intersections;
+const expect = @import("expect.zig");
+const inter = @import("intersection.zig");
+const Intersection = inter.Intersection;
+const Intersections = inter.Intersections;
+const Computations = inter.Computations;
 const Material = @import("material.zig").Material;
+const num = @import("num.zig");
 const Point = @import("tuple.zig").Point;
 const PointLight = @import("light.zig").PointLight;
 const Ray = @import("ray.zig").Ray;
@@ -34,12 +38,12 @@ pub const World = struct {
         const light = PointLight.init(Point.init(-10, 10, -10), Color.init(1, 1, 1));
 
         var objects = try std.ArrayList(Sphere).initCapacity(gpa, 10);
-        try objects.append(gpa, Sphere{ .transform = tsfm.scaling(0.5, 0.5, 0.5) });
         try objects.append(gpa, Sphere{ .material = .{
             .color = Color.init(0.8, 1.0, 0.6),
             .diffuse = 0.7,
             .specular = 0.2,
         } });
+        try objects.append(gpa, Sphere{ .transform = tsfm.scaling(0.5, 0.5, 0.5) });
 
         return World{
             .gpa = gpa,
@@ -67,6 +71,16 @@ pub const World = struct {
         }
 
         return Intersections.fromSlice(out[0..n_objs]);
+    }
+
+    pub fn shadeHit(self: *const World, comps: *const Computations) Color {
+        assert(self.light != null);
+        return comps.object.material.lighting(
+            self.light.?,
+            comps.point,
+            comps.eyev,
+            comps.normalv,
+        );
     }
 };
 
@@ -117,4 +131,37 @@ test "Intersect a world with a ray" {
     try std.testing.expectApproxEqAbs(4.5, xs.items[1].t, num.epsilon);
     try std.testing.expectApproxEqAbs(5.5, xs.items[2].t, num.epsilon);
     try std.testing.expectApproxEqAbs(6.0, xs.items[3].t, num.epsilon);
+}
+
+test "Shading an intersection" {
+    // Given
+    var w = try World.default(std.testing.allocator);
+    defer w.deinit();
+    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
+    const shape = &w.objects.items[0];
+    const i = Intersection.init(4, shape);
+
+    // When
+    const comps = i.prepareComputations(r);
+    const c = w.shadeHit(&comps);
+
+    // Then
+    try expect.approxEqColor(Color.init(0.38066, 0.47583, 0.2855), c);
+}
+
+test "Shading an intersection from the inside" {
+    // Given
+    var w = try World.default(std.testing.allocator);
+    defer w.deinit();
+    w.light = PointLight.init(Point.init(0, 0.25, 0), Color.White());
+    const r = Ray.init(Point.zero(), Vector.init(0, 0, 1));
+    const shape = &w.objects.items[1];
+    const i = Intersection.init(0.5, shape);
+
+    // When
+    const comps = i.prepareComputations(r);
+    const c = w.shadeHit(&comps);
+
+    // Then
+    try expect.approxEqColor(Color.init(0.90498, 0.90498, 0.90498), c);
 }

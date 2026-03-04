@@ -10,6 +10,7 @@ const Vector = @import("tuple.zig").Vector;
 
 pub const Computations = struct {
     t: f64,
+    inside: bool,
     object: *const Sphere,
     point: Point,
     eyev: Vector,
@@ -26,12 +27,20 @@ pub const Intersection = struct {
 
     pub fn prepareComputations(self: Intersection, r: Ray) Computations {
         const world_point = r.position(self.t);
+        var inside = false;
+        var normalv = self.object.normalAt(world_point);
+        const eyev = r.direction.negate();
+        if (normalv.dot(eyev) < 0) {
+            inside = true;
+            normalv = normalv.negate();
+        }
         return Computations{
             .t = self.t,
             .object = self.object,
             .point = world_point,
-            .eyev = r.direction.negate(),
-            .normalv = self.object.normalAt(world_point),
+            .eyev = eyev,
+            .inside = inside,
+            .normalv = normalv,
         };
     }
 
@@ -177,8 +186,8 @@ test "The hit is always the lowest non-negative intersection" {
 test "Precomputing the state of an intersection" {
     // Given
     const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
-    const shape = Sphere{};
-    const i = Intersection.init(4, &shape);
+    const shape = &Sphere{};
+    const i = Intersection.init(4, shape);
 
     // When
     const comps = i.prepareComputations(r);
