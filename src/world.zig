@@ -187,3 +187,33 @@ test "The color when a ray misses" {
     // Then
     try expect.approxEqColor(Color.Black(), c);
 }
+
+test "The color when a ray hits" {
+    // Given
+    var w = try World.default(std.testing.allocator);
+    defer w.deinit();
+    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
+
+    // When
+    const c = w.colorAt(&r);
+
+    // Then
+    try expect.approxEqColor(Color.init(0.38066, 0.47583, 0.2855), c);
+}
+
+test "The color with an intersection behind the ray" {
+    // Given
+    var w = try World.default(std.testing.allocator);
+    defer w.deinit();
+    var outer = &w.objects.items[0];
+    outer.material.ambient = 1;
+    var inner = &w.objects.items[1];
+    inner.material.ambient = 1;
+    const r = Ray.init(Point.init(0, 0, 0.75), Vector.init(0, 0, -1));
+
+    // When
+    const c = w.colorAt(&r);
+
+    // Then
+    try expect.approxEqColor(inner.material.color, c);
+}
