@@ -87,8 +87,8 @@ pub const Intersections = struct {
     }
 
     pub fn hit(self: Intersections) ?Intersection {
-        for (self.items) |i| {
-            if (i.t >= 0) return i;
+        for (self.items[0..self.count]) |it| {
+            if (it.t >= 0) return it;
         }
         return null;
     }
