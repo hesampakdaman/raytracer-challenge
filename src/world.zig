@@ -62,7 +62,7 @@ pub const World = struct {
     pub fn intersectWorld(self: *const World, r: *const Ray) Intersections {
         var out: [32]Intersection = undefined;
         var n_objs: usize = 0;
-        for (self.objects.items) |obj| {
+        for (self.objects.items) |*obj| {
             const xs = obj.intersect(r.*);
             for (0..xs.count) |i| {
                 out[n_objs] = xs.items[i];
