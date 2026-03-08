@@ -2,12 +2,13 @@ const std = @import("std");
 const math = std.math;
 const pi: f64 = math.pi;
 
+const tsfm = @import("transformation.zig");
+const Canvas = @import("canvas.zig").Canvas;
+const Color = @import("color.zig").Color;
+const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;
 const Point = @import("tuple.zig").Point;
 const Vector = @import("tuple.zig").Vector;
-
-const Canvas = @import("canvas.zig").Canvas;
-const Color = @import("color.zig").Color;
 
 pub fn translation(x: f64, y: f64, z: f64) Mat4 {
     return Mat4.identity().translate(x, y, z);
@@ -31,6 +32,20 @@ pub fn rotationZ(rad: f64) Mat4 {
 
 pub fn shearing(x_y: f64, x_z: f64, y_x: f64, y_z: f64, z_x: f64, z_y: f64) Mat4 {
     return Mat4.identity().shear(x_y, x_z, y_x, y_z, z_x, z_y);
+}
+
+pub fn viewTransform(from: Point, to: Point, up: Vector) Mat4 {
+    const forward = to.sub(from).normalize();
+    const left = forward.cross(up.normalize());
+    const true_up = left.cross(forward);
+    const orientation = Mat4.init(.{
+        .{ left.x(), left.y(), left.z(), 0 },
+        .{ true_up.x(), true_up.y(), true_up.z(), 0 },
+        .{ -forward.x(), -forward.y(), -forward.z(), 0 },
+        .{ 0, 0, 0, 1 },
+    });
+
+    return orientation.mul(&translation(-from.x(), -from.y(), -from.z()));
 }
 
 test "Multiplying by a translation matrix" {
@@ -281,4 +296,61 @@ test "Chapter 4: Putting it together" {
     }
 
     try c.savePpm(ppm_file_path);
+}
+
+test "The transformation matrix for the default orientation" {
+    // Given
+    const from = Point.zero();
+    const to = Point.init(0, 0, -1);
+    const up = Vector.init(0, 1, 0);
+
+    // When
+    const t = viewTransform(from, to, up);
+
+    // Then
+    try expect.approxEqMatrix(4, &Mat4.identity(), &t);
+}
+
+test "A view transformation matrix looking in positive z direction" {
+    // Given
+    const from = Point.zero();
+    const to = Point.init(0, 0, 1);
+    const up = Vector.init(0, 1, 0);
+
+    // When
+    const t = viewTransform(from, to, up);
+
+    // Then
+    try expect.approxEqMatrix(4, &tsfm.scaling(-1, 1, -1), &t);
+}
+
+test "The view transformation moves the world" {
+    // Given
+    const from = Point.init(0, 0, 8);
+    const to = Point.zero();
+    const up = Vector.init(0, 1, 0);
+
+    // When
+    const t = viewTransform(from, to, up);
+
+    // Then
+    try expect.approxEqMatrix(4, &translation(0, 0, -8), &t);
+}
+
+test "An arbitrary view transformation" {
+    // Given
+    const from = Point.init(1, 3, 2);
+    const to = Point.init(4, -2, 8);
+    const up = Vector.init(1, 1, 0);
+
+    // When
+    const t = viewTransform(from, to, up);
+
+    // Then
+    try expect.approxEqMatrix(4, &Mat4.init(.{
+        .{ -0.50709, 0.50709, 0.676120, -2.36643 },
+        .{ 0.767720, 0.60609, 0.121220, -2.82843 },
+        .{ -0.35857, 0.59761, -0.71714, 0.000000 },
+        .{ 0.000000, 0.00000, 0.000000, 1.000000 },
+    }), &t);
 }
