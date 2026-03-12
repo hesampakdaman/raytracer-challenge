@@ -1,6 +1,7 @@
 const std = @import("std");
 const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
+const Io = std.Io;
 
 const color = @import("color.zig");
 const Color = color.Color;
@@ -87,15 +88,9 @@ pub const Canvas = struct {
         }
     }
 
-    pub fn savePpm(self: Canvas, path: []const u8) !void {
-        var file = try std.fs.cwd().createFile(path, .{
-            .truncate = true,
-            .read = true,
-        });
-        defer file.close();
-
+    pub fn savePpm(self: Canvas, io: Io, file: Io.File) !void {
         var buf: [4096]u8 = undefined;
-        var file_writer = file.writer(&buf);
+        var file_writer = file.writer(io, &buf);
         const w = &file_writer.interface;
 
         try self.writePpm(w);

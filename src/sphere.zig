@@ -1,18 +1,18 @@
 const std = @import("std");
+const Io = std.Io;
 const math = std.math;
 
 const expect = @import("expect.zig");
-const num = @import("num.zig");
-const tsfm = @import("transformation.zig");
-
 const Intersection = @import("intersection.zig").Intersection;
 const Intersections = @import("intersection.zig").Intersections;
+const Mat4 = @import("matrix.zig").Mat4;
+const Material = @import("material.zig").Material;
+const num = @import("num.zig");
 const Point = @import("tuple.zig").Point;
 const PointLight = @import("light.zig").PointLight;
 const Ray = @import("ray.zig").Ray;
+const tsfm = @import("transformation.zig");
 const Vector = @import("tuple.zig").Vector;
-const Material = @import("material.zig").Material;
-const Mat4 = @import("matrix.zig").Mat4;
 
 pub const Sphere = struct {
     transform: Mat4 = Mat4.identity(),
@@ -207,11 +207,12 @@ test "Chapter 5: Putting it together" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    const parent = try tmp.dir.realpathAlloc(allocator, ".");
-    defer allocator.free(parent);
+    var threaded = Io.Threaded.init(allocator, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
 
-    const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "test.ppm" });
-    defer allocator.free(ppm_file_path);
+    const file = try tmp.dir.createFile(io, "sphere_demo.ppm", .{});
+    defer file.close(io);
 
     const ray_origin = Point.init(0, 0, -5);
     const wall_z: f64 = 10;
@@ -241,7 +242,7 @@ test "Chapter 5: Putting it together" {
         }
     }
 
-    try canvas.savePpm(ppm_file_path);
+    try canvas.savePpm(io, file);
 }
 
 test "The normal on a sphere at a point on the x axis" {
@@ -332,11 +333,12 @@ test "Chapter 6: Putting it together" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    const parent = try tmp.dir.realpathAlloc(allocator, ".");
-    defer allocator.free(parent);
+    var threaded = Io.Threaded.init(allocator, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
 
-    const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "test.ppm" });
-    defer allocator.free(ppm_file_path);
+    const file = try tmp.dir.createFile(io, "sphere_demo_2.ppm", .{});
+    defer file.close(io);
 
     const ray_origin = Point.init(0, 0, -5);
     const wall_z: f64 = 10;
@@ -377,5 +379,5 @@ test "Chapter 6: Putting it together" {
         }
     }
 
-    try canvas.savePpm(ppm_file_path);
+    try canvas.savePpm(io, file);
 }

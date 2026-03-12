@@ -1,4 +1,5 @@
 const std = @import("std");
+const Io = std.Io;
 
 const Canvas = @import("canvas.zig").Canvas;
 const Color = @import("color.zig").Color;
@@ -45,11 +46,12 @@ test "Chapter 3: Putting it together" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    const parent = try tmp.dir.realpathAlloc(allocator, ".");
-    defer allocator.free(parent);
+    var threaded = Io.Threaded.init(allocator, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
 
-    const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "test.ppm" });
-    defer allocator.free(ppm_file_path);
+    const file = try tmp.dir.createFile(io, "projectile_demo.ppm", .{});
+    defer file.close(io);
 
     var p = Projectile{
         .position = Point.init(0, 1, 0),
@@ -69,5 +71,5 @@ test "Chapter 3: Putting it together" {
         p = tick(e, p);
     }
 
-    try c.savePpm(ppm_file_path);
+    try c.savePpm(io, file);
 }

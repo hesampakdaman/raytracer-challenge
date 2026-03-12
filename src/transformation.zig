@@ -265,11 +265,12 @@ test "Chapter 4: Putting it together" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    const parent = try tmp.dir.realpathAlloc(allocator, ".");
-    defer allocator.free(parent);
+    var threaded = std.Io.Threaded.init(allocator, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
 
-    const ppm_file_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{ parent, "clock_demo.ppm" });
-    defer allocator.free(ppm_file_path);
+    const file = try tmp.dir.createFile(io, "clock_demo.ppm", .{});
+    defer file.close(io);
 
     var c = try Canvas.init(allocator, 250, 250);
     defer c.deinit();
@@ -295,7 +296,7 @@ test "Chapter 4: Putting it together" {
         c.writePixel(x, y, Color.init(255, 255, 255));
     }
 
-    try c.savePpm(ppm_file_path);
+    try c.savePpm(io, file);
 }
 
 test "The transformation matrix for the default orientation" {
