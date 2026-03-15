@@ -4,7 +4,6 @@ const math = std.math;
 const expect = @import("expect.zig");
 const num = @import("num.zig");
 const tup = @import("tuple.zig");
-
 const Color = @import("color.zig").Color;
 const Point = tup.Point;
 const PointLight = @import("light.zig").PointLight;
