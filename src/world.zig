@@ -80,6 +80,7 @@ pub const World = struct {
             comps.point,
             comps.eyev,
             comps.normalv,
+            false,
         );
     }
 

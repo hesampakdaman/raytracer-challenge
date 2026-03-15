@@ -373,7 +373,7 @@ test "Chapter 6: Putting it together" {
                 const point = ray.position(hit.t);
                 const normal = hit.object.normalAt(point);
                 const eye = ray.direction.negate();
-                const color = hit.object.material.lighting(light, point, eye, normal);
+                const color = hit.object.material.lighting(light, point, eye, normal, false);
                 canvas.writePixel(x, y, color);
             }
         }
