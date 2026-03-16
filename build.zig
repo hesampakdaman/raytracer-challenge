@@ -147,10 +147,16 @@ pub fn build(b: *std.Build) void {
     const dev_step = b.step("dev", "Run tests in watch mode using watchexec");
     const watch_cmd = b.addSystemCommand(&.{
         "watchexec",
+        "--clear",
+        "--timings",
+        "--on-busy-update",
+        "restart",
+        "--",
         "zig",
         "build",
         "test",
-        "-fincremental",
+        "--summary",
+        "failures",
     });
 
     dev_step.dependOn(&watch_cmd.step);
