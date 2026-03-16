@@ -35,7 +35,10 @@ pub const World = struct {
     }
 
     pub fn default(gpa: Allocator) !World {
-        const light = PointLight.init(Point.init(-10, 10, -10), Color.init(1, 1, 1));
+        const light = PointLight.init(
+            Point.init(-10, 10, -10),
+            Color.init(1, 1, 1),
+        );
 
         var objects = try std.ArrayList(Sphere).initCapacity(gpa, 10);
         try objects.append(gpa, Sphere{ .material = .{
@@ -91,6 +94,20 @@ pub const World = struct {
             return self.shadeHit(&comps);
         }
         return Color.Black();
+    }
+
+    pub fn isShadowed(self: *const World, point: Point) bool {
+        const v = self.light.?.position.sub(point);
+        const distance = v.magnitude();
+        const direction = v.normalize();
+
+        const r = Ray.init(point, direction);
+        const intersections = self.intersectWorld(&r);
+
+        if (intersections.hit()) |h| {
+            return h.t < distance;
+        }
+        return false;
     }
 };
 
@@ -217,4 +234,52 @@ test "The color with an intersection behind the ray" {
 
     // Then
     try expect.approxEqColor(inner.material.color, c);
+}
+
+test "There is no shadow when nothing is collinear with point and light" {
+    // Given
+    const gpa = std.testing.allocator;
+    var w = try World.default(gpa);
+    defer w.deinit();
+    const p = Point.init(0, 10, 0);
+
+    // Then
+    try std.testing.expectEqual(false, w.isShadowed(p));
+}
+
+test "The shadow when an object is between the point and the light" {
+    // Given
+    const gpa = std.testing.allocator;
+    var w = try World.default(gpa);
+    defer w.deinit();
+    const p = Point.init(10, -10, 10);
+
+    // Then
+    try std.testing.expectEqual(true, w.isShadowed(p));
+}
+
+test "There is no shadow when an object is behind light" {
+    // Given
+    const gpa = std.testing.allocator;
+    var w = try World.default(gpa);
+    defer w.deinit();
+
+    // When
+    const p = Point.init(-20, 20, -20);
+
+    // Then
+    try std.testing.expectEqual(false, w.isShadowed(p));
+}
+
+test "There is no shadow when an object is behind the point" {
+    // Given
+    const gpa = std.testing.allocator;
+    var w = try World.default(gpa);
+    defer w.deinit();
+
+    // When
+    const p = Point.init(-2, 2, -2);
+
+    // Then
+    try std.testing.expectEqual(false, w.isShadowed(p));
 }
