@@ -25,6 +25,10 @@ pub const Sphere = struct {
         };
     }
 
+    pub fn default() Sphere {
+        return Sphere{};
+    }
+
     pub fn intersect(self: *const Sphere, r: Ray) Intersections {
         const inv = self.transform.inverse();
         const ray = r.transform(inv);
