@@ -268,3 +268,85 @@ test "Chapter 7: Putting it together" {
     defer canvas.deinit();
     try canvas.savePpm(io, file);
 }
+
+test "Chapter 8: Putting it together" {
+    const Io = std.Io;
+    const Material = @import("material.zig").Material;
+    const PointLight = @import("light.zig").PointLight;
+
+    const gpa = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var threaded = Io.Threaded.init(gpa, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
+
+    const file = try tmp.dir.createFile(io, "eclipse.ppm", .{});
+    defer file.close(io);
+
+    const floor = Sphere{
+        .transform = tsfm.scaling(10, 0.01, 10),
+        .material = Material{
+            .color = Color.init(1, 0.9, 0.9),
+            .specular = 0,
+        },
+    };
+
+    const left_wall = Sphere{
+        .transform = tsfm.translation(0, 0, 5)
+            .mul(&tsfm.rotationY(-num.pi / 4.0)
+            .mul(&tsfm.rotationX(num.pi / 2.0))
+            .mul(&tsfm.scaling(10, 0.01, 10))),
+        .material = floor.material,
+    };
+
+    const right_wall = Sphere{
+        .transform = tsfm.translation(0, 0, 5)
+            .mul(&tsfm.rotationY(num.pi / 4.0))
+            .mul(&tsfm.rotationX(num.pi / 2.0))
+            .mul(&tsfm.scaling(10, 0.01, 10)),
+        .material = floor.material,
+    };
+
+    const middle = Sphere{
+        .transform = tsfm.translation(-0.3, 1, 0.5),
+        .material = Material{
+            .color = Color.init(0.1, 1, 0.5),
+            .diffuse = 0.7,
+            .specular = 0.3,
+        },
+    };
+
+    const left = Sphere{
+        .transform = tsfm.translation(-1.4, 2.0, -1.1)
+            .mul(&tsfm.scaling(0.33, 0.33, 0.33)),
+        .material = Material{
+            .color = Color.init(1, 0.8, 0.1),
+            .diffuse = 0.7,
+            .specular = 0.3,
+        },
+    };
+
+    var world = try World.init(gpa);
+    defer world.deinit();
+    world.light = PointLight.init(Point.init(-10, 10, -10), Color.White());
+
+    try world.objects.append(gpa, floor);
+    try world.objects.append(gpa, left_wall);
+    try world.objects.append(gpa, right_wall);
+    try world.objects.append(gpa, middle);
+    try world.objects.append(gpa, left);
+
+    var camera = Camera.init(10, 5, num.pi / 2.7);
+    camera.transform = tsfm.viewTransform(
+        Point.init(0, 1.5, -5),
+        Point.init(-0.2, 1.3, -1),
+        Vector.init(0, 1, 0),
+    );
+
+    var canvas = try camera.render(gpa, &world);
+    defer canvas.deinit();
+    try canvas.savePpm(io, file);
+}
