@@ -13,6 +13,7 @@ pub const Computations = struct {
     inside: bool,
     object: *const Sphere,
     point: Point,
+    over_point: Point,
     eyev: Vector,
     normalv: Vector,
 };
@@ -34,10 +35,12 @@ pub const Intersection = struct {
             inside = true;
             normalv = normalv.negate();
         }
+        const over_point = world_point.add(normalv.mul(num.epsilon));
         return Computations{
             .t = self.t,
             .object = self.object,
             .point = world_point,
+            .over_point = over_point,
             .eyev = eyev,
             .inside = inside,
             .normalv = normalv,
@@ -197,4 +200,19 @@ test "Precomputing the state of an intersection" {
     try expect.approxEqPoint(Point.init(0, 0, -1), comps.point);
     try expect.approxEqVector(Vector.init(0, 0, -1), comps.eyev);
     try expect.approxEqVector(Vector.init(0, 0, -1), comps.normalv);
+}
+
+test "The hit should offset the point" {
+    const tsfm = @import("transformation.zig");
+    // Given
+    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
+    const shape = Sphere{ .transform = tsfm.translation(0, 0, 1) };
+    const i = Intersection.init(5, &shape);
+
+    // When
+    const comps = i.prepareComputations(r);
+
+    // Then
+    try std.testing.expect(comps.over_point.z() < -num.epsilon / 2.0);
+    try std.testing.expect(comps.point.z() > comps.over_point.z());
 }
