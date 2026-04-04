@@ -257,7 +257,7 @@ test "Chapter 7: Putting it together" {
     try world.objects.append(gpa, right);
     try world.objects.append(gpa, left);
 
-    var camera = Camera.init(100, 50, num.pi / 3.0);
+    var camera = Camera.init(10, 5, num.pi / 3.0);
     camera.transform = tsfm.viewTransform(
         Point.init(0, 1.5, -5),
         Point.init(0, 1, 0),
