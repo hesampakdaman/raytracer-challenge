@@ -78,12 +78,13 @@ pub const World = struct {
 
     pub fn shadeHit(self: *const World, comps: *const Computations) Color {
         assert(self.light != null);
+        const shadowed = self.isShadowed(comps.over_point);
         return comps.object.material.lighting(
             self.light.?,
             comps.point,
             comps.eyev,
             comps.normalv,
-            false,
+            shadowed,
         );
     }
 
@@ -97,6 +98,7 @@ pub const World = struct {
     }
 
     pub fn isShadowed(self: *const World, point: Point) bool {
+        assert(self.light != null);
         const v = self.light.?.position.sub(point);
         const distance = v.magnitude();
         const direction = v.normalize();
@@ -282,4 +284,28 @@ test "There is no shadow when an object is behind the point" {
 
     // Then
     try std.testing.expectEqual(false, w.isShadowed(p));
+}
+
+test "shadeHit() is given an intersection in shadow" {
+    // Given
+    const gpa = std.testing.allocator;
+    var w = try World.default(gpa);
+    defer w.deinit();
+
+    w.light = PointLight.init(Point.init(0, 0, -10), Color.White());
+
+    const s1 = Sphere.default();
+    const s2 = Sphere{ .transform = tsfm.translation(0, 0, 10) };
+    try w.objects.append(gpa, s1);
+    try w.objects.append(gpa, s2);
+
+    const r = Ray.init(Point.init(0, 0, 5), Vector.init(0, 0, 1));
+    const i = Intersection.init(4, &s2);
+
+    // When
+    const comps = i.prepareComputations(r);
+    const c = w.shadeHit(&comps);
+
+    // Then
+    try expect.approxEqColor(Color.init(0.1, 0.1, 0.1), c);
 }
