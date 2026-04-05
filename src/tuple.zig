@@ -90,6 +90,73 @@ pub const Tuple = struct {
     }
 };
 
+test "A tuple with w=1.0 is a point" {
+    // Given
+    const a = Tuple.init(4.3, -4.2, 3.1, 1.0);
+
+    // Then
+    try std.testing.expectApproxEqAbs(4.3, a.x(), num.epsilon);
+    try std.testing.expectApproxEqAbs(-4.2, a.y(), num.epsilon);
+    try std.testing.expectApproxEqAbs(3.1, a.z(), num.epsilon);
+    try std.testing.expectApproxEqAbs(1.0, a.w(), num.epsilon);
+    try std.testing.expect(a.isPoint());
+    try std.testing.expect(!a.isVector());
+}
+
+test "A tuple with w=0 is a vector" {
+    // Given
+    const a = Tuple.init(4.3, -4.2, 3.1, 0.0);
+
+    // Then
+    try std.testing.expectApproxEqAbs(4.3, a.x(), num.epsilon);
+    try std.testing.expectApproxEqAbs(-4.2, a.y(), num.epsilon);
+    try std.testing.expectApproxEqAbs(3.1, a.z(), num.epsilon);
+    try std.testing.expectApproxEqAbs(0.0, a.w(), num.epsilon);
+    try std.testing.expect(!a.isPoint());
+    try std.testing.expect(a.isVector());
+}
+
+test "Adding two tuples" {
+    // Given
+    const a1 = Tuple.init(3, -2, 5, 1);
+    const a2 = Tuple.init(-2, 3, 1, 0);
+
+    // Then
+    try std.testing.expect(a1.add(a2).approxEq(Tuple.init(1, 1, 6, 1)));
+}
+
+test "Negating a tuple" {
+    // Given
+    const a = Tuple.init(1, -2, 3, -4);
+
+    // Then
+    try std.testing.expect(a.negate().approxEq(Tuple.init(-1, 2, -3, 4)));
+}
+
+test "Multiplying a tuple by a scalar" {
+    // Given
+    const a = Tuple.init(1, -2, 3, -4);
+
+    // Then
+    try std.testing.expect(a.mul(3.5).approxEq(Tuple.init(3.5, -7, 10.5, -14)));
+}
+
+test "Multiplying a tuple by a fraction" {
+    // Given
+    const a = Tuple.init(1, -2, 3, -4);
+
+    // Then
+    try std.testing.expect(a.mul(0.5).approxEq(Tuple.init(0.5, -1, 1.5, -2)));
+}
+
+test "Dividing a tuple by a scalar" {
+    // Given
+    const a = Tuple.init(1, -2, 3, -4);
+
+    // Then
+    try std.testing.expect(a.div(2).approxEq(Tuple.init(0.5, -1, 1.5, -2)));
+}
+
 pub const Point = struct {
     tuple: Tuple,
 
@@ -141,6 +208,23 @@ pub const Point = struct {
         };
     }
 };
+
+test "point() creates tuples with w=1" {
+    // Given
+    const p = Point.init(4, -4, 3);
+
+    // Then
+    try std.testing.expect(p.approxEq(Point.init(4, -4, 3)));
+}
+
+test "Subtracting two points" {
+    // Given
+    const p1 = Point.init(3, 2, 1);
+    const p2 = Point.init(5, 6, 7);
+
+    // Then
+    try std.testing.expect(p1.sub(p2).approxEq(Vector.init(-2, -4, -6)));
+}
 
 pub const Vector = struct {
     tuple: Tuple,
@@ -234,64 +318,12 @@ pub const Vector = struct {
     }
 };
 
-test "A tuple with w=1.0 is a point" {
-    // Given
-    const a = Tuple.init(4.3, -4.2, 3.1, 1.0);
-
-    // Then
-    try std.testing.expectApproxEqAbs(4.3, a.x(), num.epsilon);
-    try std.testing.expectApproxEqAbs(-4.2, a.y(), num.epsilon);
-    try std.testing.expectApproxEqAbs(3.1, a.z(), num.epsilon);
-    try std.testing.expectApproxEqAbs(1.0, a.w(), num.epsilon);
-    try std.testing.expect(a.isPoint());
-    try std.testing.expect(!a.isVector());
-}
-
-test "A tuple with w=0 is a vector" {
-    // Given
-    const a = Tuple.init(4.3, -4.2, 3.1, 0.0);
-
-    // Then
-    try std.testing.expectApproxEqAbs(4.3, a.x(), num.epsilon);
-    try std.testing.expectApproxEqAbs(-4.2, a.y(), num.epsilon);
-    try std.testing.expectApproxEqAbs(3.1, a.z(), num.epsilon);
-    try std.testing.expectApproxEqAbs(0.0, a.w(), num.epsilon);
-    try std.testing.expect(!a.isPoint());
-    try std.testing.expect(a.isVector());
-}
-
-test "point() creates tuples with w=1" {
-    // Given
-    const p = Point.init(4, -4, 3);
-
-    // Then
-    try std.testing.expect(p.approxEq(Point.init(4, -4, 3)));
-}
-
 test "vector() creates tuples with w=0" {
     // Given
     const v = Vector.init(4, -4, 3);
 
     // Then
     try std.testing.expect(v.approxEq(Vector.init(4, -4, 3)));
-}
-
-test "Adding two tuples" {
-    // Given
-    const a1 = Tuple.init(3, -2, 5, 1);
-    const a2 = Tuple.init(-2, 3, 1, 0);
-
-    // Then
-    try std.testing.expect(a1.add(a2).approxEq(Tuple.init(1, 1, 6, 1)));
-}
-
-test "Subtracting two points" {
-    // Given
-    const p1 = Point.init(3, 2, 1);
-    const p2 = Point.init(5, 6, 7);
-
-    // Then
-    try std.testing.expect(p1.sub(p2).approxEq(Vector.init(-2, -4, -6)));
 }
 
 test "Subtracting a vector from a point" {
@@ -319,38 +351,6 @@ test "Subtracting a vector from the zero vector" {
 
     // Then
     try std.testing.expect(zero.sub(v).approxEq(Vector.init(-1, 2, -3)));
-}
-
-test "Negating a tuple" {
-    // Given
-    const a = Tuple.init(1, -2, 3, -4);
-
-    // Then
-    try std.testing.expect(a.negate().approxEq(Tuple.init(-1, 2, -3, 4)));
-}
-
-test "Multiplying a tuple by a scalar" {
-    // Given
-    const a = Tuple.init(1, -2, 3, -4);
-
-    // Then
-    try std.testing.expect(a.mul(3.5).approxEq(Tuple.init(3.5, -7, 10.5, -14)));
-}
-
-test "Multiplying a tuple by a fraction" {
-    // Given
-    const a = Tuple.init(1, -2, 3, -4);
-
-    // Then
-    try std.testing.expect(a.mul(0.5).approxEq(Tuple.init(0.5, -1, 1.5, -2)));
-}
-
-test "Dividing a tuple by a scalar" {
-    // Given
-    const a = Tuple.init(1, -2, 3, -4);
-
-    // Then
-    try std.testing.expect(a.div(2).approxEq(Tuple.init(0.5, -1, 1.5, -2)));
 }
 
 test "Computing the magnitude of Vector.init(1, 0, 0)" {
@@ -422,7 +422,7 @@ test "The magnitude of a normalized vector" {
     try std.testing.expectApproxEqAbs(1, norm.magnitude(), num.epsilon);
 }
 
-test "The dot product of two tuples" {
+test "The dot product of two vectors" {
     // Given
     const a = Vector.init(1, 2, 3);
     const b = Vector.init(2, 3, 4);
