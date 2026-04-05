@@ -151,10 +151,6 @@ pub const Intersections = struct {
         }
         return null;
     }
-
-    fn lessThan(_: void, a: Intersection, b: Intersection) bool {
-        return a.t < b.t;
-    }
 };
 
 test "Aggregating intersections" {
