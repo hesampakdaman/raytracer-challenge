@@ -82,6 +82,7 @@ pub const World = struct {
         assert(self.light != null);
         const shadowed = self.isShadowed(comps.over_point);
         return comps.object.material().lighting(
+            comps.object,
             self.light.?,
             comps.point,
             comps.eyev,

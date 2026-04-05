@@ -110,11 +110,11 @@ pub const Shape = union(enum) {
     }
 };
 
-const Probe = struct {
+const Probe = if (builtin.is_test) struct {
     saved_ray: ?Ray = null,
-};
+} else struct {};
 
-const TestShape = struct {
+const TestShape = if (builtin.is_test) struct {
     probe: *Probe,
     transform: Mat4 = Mat4.identity(),
     material: Material = Material{},
@@ -131,9 +131,10 @@ const TestShape = struct {
     pub fn localNormalAt(_: *const TestShape, p: Point) Vector {
         return Vector.init(p.x(), p.y(), p.z());
     }
-};
+} else struct {};
 
 fn testShape(p: *Probe) Shape {
+    if (!builtin.is_test) @compileError("testShape is test-only");
     return Shape{ .testShape = TestShape{ .probe = p } };
 }
 
@@ -360,7 +361,14 @@ test "Chapter 6: Putting it together" {
                 const point = ray.position(hit.t);
                 const normal = hit.object.normalAt(&point);
                 const eye = ray.direction.negate();
-                const color = hit.object.material().lighting(light, point, eye, normal, false);
+                const color = hit.object.material().lighting(
+                    &Shape.newSphere(.{}),
+                    light,
+                    point,
+                    eye,
+                    normal,
+                    false,
+                );
                 canvas.writePixel(x, y, color);
             }
         }

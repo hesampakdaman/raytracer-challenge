@@ -7,7 +7,9 @@ const tup = @import("tuple.zig");
 const Color = @import("color.zig").Color;
 const Point = tup.Point;
 const PointLight = @import("light.zig").PointLight;
+const Shape = @import("shape.zig").Shape;
 const Vector = tup.Vector;
+const Pattern = @import("pattern.zig").Pattern;
 
 pub const Material = struct {
     color: Color = Color.init(1, 1, 1),
@@ -15,10 +17,12 @@ pub const Material = struct {
     diffuse: f32 = 0.9,
     specular: f32 = 0.9,
     shininess: f32 = 200.0,
+    pattern: ?Pattern = null,
 
-    pub fn lighting(self: Material, light: PointLight, point: Point, eyev: Vector, normalv: Vector, in_shadow: bool) Color {
+    pub fn lighting(self: Material, shape: *const Shape, light: PointLight, point: Point, eyev: Vector, normalv: Vector, in_shadow: bool) Color {
+        const color = if (self.pattern) |p| p.patternAtShape(shape, point) else self.color;
         // ambient light is uniformly applied
-        const effective_color = self.color.hadamard_product(light.intensity);
+        const effective_color = color.hadamard_product(light.intensity);
         const ambient = effective_color.mul(self.ambient);
         if (in_shadow) return ambient;
 
@@ -78,7 +82,7 @@ test "Lighting with the eye between the light and the surface" {
     const light = PointLight.init(Point.init(0, 0, -10), Color.init(1, 1, 1));
 
     // When
-    const result = ctx.m.lighting(light, ctx.position, eyev, normalv, false);
+    const result = ctx.m.lighting(&Shape.newSphere(.{}), light, ctx.position, eyev, normalv, false);
 
     // Then
     try expect.approxEqColor(Color.init(1.9, 1.9, 1.9), result);
@@ -92,7 +96,7 @@ test "Lighting with the eye between the light and the surface, eye offset 45°" 
     const light = PointLight.init(Point.init(0, 0, -10), Color.init(1, 1, 1));
 
     // When
-    const result = ctx.m.lighting(light, ctx.position, eyev, normalv, false);
+    const result = ctx.m.lighting(&Shape.newSphere(.{}), light, ctx.position, eyev, normalv, false);
 
     // Then
     try expect.approxEqColor(Color.init(1.0, 1.0, 1.0), result);
@@ -106,7 +110,7 @@ test "Lighting with eye opposite surface, light offset 45°" {
     const light = PointLight.init(Point.init(0, 10, -10), Color.init(1, 1, 1));
 
     // When
-    const result = ctx.m.lighting(light, ctx.position, eyev, normalv, false);
+    const result = ctx.m.lighting(&Shape.newSphere(.{}), light, ctx.position, eyev, normalv, false);
 
     // Then
     try expect.approxEqColor(Color.init(0.7364, 0.7364, 0.7364), result);
@@ -120,7 +124,7 @@ test "Lighting with eye in the path of the reflection vector" {
     const light = PointLight.init(Point.init(0, 10, -10), Color.init(1, 1, 1));
 
     // When
-    const result = ctx.m.lighting(light, ctx.position, eyev, normalv, false);
+    const result = ctx.m.lighting(&Shape.newSphere(.{}), light, ctx.position, eyev, normalv, false);
 
     // Then
     try expect.approxEqColor(Color.init(1.6364, 1.6364, 1.6364), result);
@@ -134,7 +138,7 @@ test "Lighting with the light behind the surface" {
     const light = PointLight.init(Point.init(0, 0, 10), Color.init(1, 1, 1));
 
     // When
-    const result = ctx.m.lighting(light, ctx.position, eyev, normalv, false);
+    const result = ctx.m.lighting(&Shape.newSphere(.{}), light, ctx.position, eyev, normalv, false);
 
     // Then
     try expect.approxEqColor(Color.init(0.1, 0.1, 0.1), result);
@@ -149,8 +153,28 @@ test "Lightning with the surface in shadow" {
     const in_shadow = true;
 
     // When
-    const result = ctx.m.lighting(light, ctx.position, eyev, normalv, in_shadow);
+    const result = ctx.m.lighting(&Shape.newSphere(.{}), light, ctx.position, eyev, normalv, in_shadow);
 
     // Then
     try expect.approxEqColor(Color.init(0.1, 0.1, 0.1), result);
+}
+
+test "Lighting with a pattern applied" {
+    // Given
+    var ctx = TestContext{};
+    ctx.m.pattern = Pattern.newStripe(.{ .a = Color.white(), .b = Color.black() });
+    ctx.m.ambient = 1;
+    ctx.m.diffuse = 0;
+    ctx.m.specular = 0;
+    const eyev = Vector.init(0, 0, -1);
+    const normalv = Vector.init(0, 0, -1);
+    const light = PointLight.init(Point.init(0, 0, -10), Color.white());
+
+    // When
+    const c1 = ctx.m.lighting(&Shape.newSphere(.{}), light, Point.init(0.9, 0, 0), eyev, normalv, false);
+    const c2 = ctx.m.lighting(&Shape.newSphere(.{}), light, Point.init(1.1, 0, 0), eyev, normalv, false);
+
+    // Then
+    try expect.approxEqColor(c1, Color.white());
+    try expect.approxEqColor(c2, Color.black());
 }
