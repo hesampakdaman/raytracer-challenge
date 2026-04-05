@@ -5,13 +5,13 @@ const expect = @import("expect.zig");
 const num = @import("num.zig");
 const Point = @import("tuple.zig").Point;
 const Ray = @import("ray.zig").Ray;
-const Sphere = @import("sphere.zig").Sphere;
+const Shape = @import("shape.zig").Shape;
 const Vector = @import("tuple.zig").Vector;
 
 pub const Computations = struct {
     t: f64,
     inside: bool,
-    object: *const Sphere,
+    object: *const Shape,
     point: Point,
     over_point: Point,
     eyev: Vector,
@@ -20,16 +20,16 @@ pub const Computations = struct {
 
 pub const Intersection = struct {
     t: f64,
-    object: *const Sphere,
+    object: *const Shape,
 
-    pub fn init(t: f64, object: *const Sphere) Intersection {
+    pub fn init(t: f64, object: *const Shape) Intersection {
         return .{ .t = t, .object = object };
     }
 
     pub fn prepareComputations(self: Intersection, r: Ray) Computations {
         const world_point = r.position(self.t);
         var inside = false;
-        var normalv = self.object.normalAt(world_point);
+        var normalv = self.object.normalAt(&world_point);
         const eyev = r.direction.negate();
         if (normalv.dot(eyev) < 0) {
             inside = true;
@@ -76,7 +76,20 @@ pub const Intersections = struct {
         return out;
     }
 
-    pub fn fromSlice(xs: []Intersection) Intersections {
+    pub fn fromTs(xs: []f64, s: *const Shape) Intersections {
+        assert(xs.len <= 32);
+
+        var out = Intersections{ .items = undefined, .count = 0 };
+        for (xs) |x| {
+            out.items[out.count] = Intersection.init(x, s);
+            out.count += 1;
+        }
+
+        std.sort.insertion(Intersection, out.items[0..out.count], {}, Intersection.lessThan);
+        return out;
+    }
+
+    pub fn fromIntersections(xs: []Intersection) Intersections {
         assert(xs.len <= 32);
 
         var out = Intersections{ .items = undefined, .count = 0 };
@@ -103,7 +116,7 @@ pub const Intersections = struct {
 
 test "An intersection encapsulates t and object" {
     // Given
-    const s = Sphere{};
+    const s = Shape.newSphere(.{});
 
     // When
     const i = Intersection{ .t = 3.5, .object = &s };
@@ -115,7 +128,7 @@ test "An intersection encapsulates t and object" {
 
 test "Aggregating intersections" {
     // Given
-    const s = Sphere{};
+    const s = Shape.newSphere(.{});
     const i_1 = Intersection{ .t = 1, .object = &s };
     const i_2 = Intersection{ .t = 2, .object = &s };
 
@@ -130,7 +143,7 @@ test "Aggregating intersections" {
 
 test "The hit, when all intersections have positive t" {
     // Given
-    const s = &Sphere{};
+    const s = &Shape.newSphere(.{});
     const i_1 = Intersection{ .t = 1, .object = s };
     const i_2 = Intersection{ .t = 2, .object = s };
     const xs = Intersections.init(.{ i_2, i_1 });
@@ -144,7 +157,7 @@ test "The hit, when all intersections have positive t" {
 
 test "The hit, when some intersections have negative t" {
     // Given
-    const s = &Sphere{};
+    const s = &Shape.newSphere(.{});
     const i_1 = Intersection{ .t = -1, .object = s };
     const i_2 = Intersection{ .t = 1, .object = s };
     const xs = Intersections.init(.{ i_2, i_1 });
@@ -158,7 +171,7 @@ test "The hit, when some intersections have negative t" {
 
 test "The hit, when all intersections have negative t" {
     // Given
-    const s = &Sphere{};
+    const s = &Shape.newSphere(.{});
     const i_1 = Intersection{ .t = -2, .object = s };
     const i_2 = Intersection{ .t = -1, .object = s };
     const xs = Intersections.init(.{ i_2, i_1 });
@@ -172,11 +185,11 @@ test "The hit, when all intersections have negative t" {
 
 test "The hit is always the lowest non-negative intersection" {
     // Given
-    const s = &Sphere{};
-    const i_1 = Intersection{ .t = 5, .object = s };
-    const i_2 = Intersection{ .t = 7, .object = s };
-    const i_3 = Intersection{ .t = -3, .object = s };
-    const i_4 = Intersection{ .t = 2, .object = s };
+    const s = Shape.newSphere(.{});
+    const i_1 = Intersection{ .t = 5, .object = &s };
+    const i_2 = Intersection{ .t = 7, .object = &s };
+    const i_3 = Intersection{ .t = -3, .object = &s };
+    const i_4 = Intersection{ .t = 2, .object = &s };
     const xs = Intersections.init(.{ i_1, i_2, i_3, i_4 });
 
     // When
@@ -189,8 +202,8 @@ test "The hit is always the lowest non-negative intersection" {
 test "Precomputing the state of an intersection" {
     // Given
     const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
-    const shape = &Sphere{};
-    const i = Intersection.init(4, shape);
+    const shape = Shape.newSphere(.{});
+    const i = Intersection.init(4, &shape);
 
     // When
     const comps = i.prepareComputations(r);
@@ -206,7 +219,7 @@ test "The hit should offset the point" {
     const tsfm = @import("transformation.zig");
     // Given
     const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
-    const shape = Sphere{ .transform = tsfm.translation(0, 0, 1) };
+    const shape = Shape.newSphere(.{ .transform = tsfm.translation(0, 0, 1) });
     const i = Intersection.init(5, &shape);
 
     // When

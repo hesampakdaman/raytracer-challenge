@@ -7,7 +7,6 @@ const tup = @import("tuple.zig");
 const Color = @import("color.zig").Color;
 const Point = tup.Point;
 const PointLight = @import("light.zig").PointLight;
-const Sphere = @import("sphere.zig").Sphere;
 const Vector = tup.Vector;
 
 pub const Material = struct {
@@ -64,30 +63,6 @@ test "The default material" {
     try std.testing.expectApproxEqAbs(0.9, m.diffuse, num.epsilon);
     try std.testing.expectApproxEqAbs(0.9, m.specular, num.epsilon);
     try std.testing.expectApproxEqAbs(200.0, m.shininess, num.epsilon);
-}
-
-test "A sphere has a default material" {
-    // Given
-    const s = Sphere{};
-
-    // When
-    const m = s.material;
-
-    // Then
-    try expect.approxEqMaterial(Material{}, m);
-}
-
-test "A sphere may be assigned a material" {
-    // Given
-    var s = Sphere{};
-    var m = Material{};
-    m.ambient = 1;
-
-    // When
-    s.material = m;
-
-    // Then
-    try expect.approxEqMaterial(m, s.material);
 }
 
 const TestContext = struct {

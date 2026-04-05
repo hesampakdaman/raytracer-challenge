@@ -9,7 +9,7 @@ const Mat4 = @import("matrix.zig").Mat4;
 const num = @import("num.zig");
 const Point = @import("tuple.zig").Point;
 const Ray = @import("ray.zig").Ray;
-const Sphere = @import("sphere.zig").Sphere;
+const Shape = @import("shape.zig").Shape;
 const tsfm = @import("transformation.zig");
 const Vector = @import("tuple.zig").Vector;
 const World = @import("world.zig").World;
@@ -193,40 +193,40 @@ test "Chapter 7: Putting it together" {
     const file = try tmp.dir.createFile(io, "camera.ppm", .{});
     defer file.close(io);
 
-    const floor = Sphere{
+    const floor = Shape.newSphere(.{
         .transform = tsfm.scaling(10, 0.01, 10),
         .material = Material{
             .color = Color.init(1, 0.9, 0.9),
             .specular = 0,
         },
-    };
+    });
 
-    const left_wall = Sphere{
+    const left_wall = Shape.newSphere(.{
         .transform = tsfm.translation(0, 0, 5)
             .mul(&tsfm.rotationY(-num.pi / 4.0)
             .mul(&tsfm.rotationX(num.pi / 2.0))
             .mul(&tsfm.scaling(10, 0.01, 10))),
-        .material = floor.material,
-    };
+        .material = floor.material(),
+    });
 
-    const right_wall = Sphere{
+    const right_wall = Shape.newSphere(.{
         .transform = tsfm.translation(0, 0, 5)
             .mul(&tsfm.rotationY(num.pi / 4.0))
             .mul(&tsfm.rotationX(num.pi / 2.0))
             .mul(&tsfm.scaling(10, 0.01, 10)),
-        .material = floor.material,
-    };
+        .material = floor.material(),
+    });
 
-    const middle = Sphere{
+    const middle = Shape.newSphere(.{
         .transform = tsfm.translation(-0.5, 1, 0.5),
         .material = Material{
             .color = Color.init(0.1, 1, 0.5),
             .diffuse = 0.7,
             .specular = 0.3,
         },
-    };
+    });
 
-    const right = Sphere{
+    const right = Shape.newSphere(.{
         .transform = tsfm.translation(1.5, 0.5, -0.5)
             .mul(&tsfm.scaling(0.5, 0.5, 0.5)),
         .material = Material{
@@ -234,9 +234,9 @@ test "Chapter 7: Putting it together" {
             .diffuse = 0.7,
             .specular = 0.3,
         },
-    };
+    });
 
-    const left = Sphere{
+    const left = Shape.newSphere(.{
         .transform = tsfm.translation(-1.5, 0.33, -0.75)
             .mul(&tsfm.scaling(0.33, 0.33, 0.33)),
         .material = Material{
@@ -244,7 +244,7 @@ test "Chapter 7: Putting it together" {
             .diffuse = 0.7,
             .specular = 0.3,
         },
-    };
+    });
 
     var world = try World.init(gpa);
     defer world.deinit();
@@ -286,40 +286,40 @@ test "Chapter 8: Putting it together" {
     const file = try tmp.dir.createFile(io, "eclipse.ppm", .{});
     defer file.close(io);
 
-    const floor = Sphere{
+    const floor = Shape.newSphere(.{
         .transform = tsfm.scaling(10, 0.01, 10),
         .material = Material{
             .color = Color.init(1, 0.9, 0.9),
             .specular = 0,
         },
-    };
+    });
 
-    const left_wall = Sphere{
+    const left_wall = Shape.newSphere(.{
         .transform = tsfm.translation(0, 0, 5)
             .mul(&tsfm.rotationY(-num.pi / 4.0)
             .mul(&tsfm.rotationX(num.pi / 2.0))
             .mul(&tsfm.scaling(10, 0.01, 10))),
-        .material = floor.material,
-    };
+        .material = floor.material(),
+    });
 
-    const right_wall = Sphere{
+    const right_wall = Shape.newSphere(.{
         .transform = tsfm.translation(0, 0, 5)
             .mul(&tsfm.rotationY(num.pi / 4.0))
             .mul(&tsfm.rotationX(num.pi / 2.0))
             .mul(&tsfm.scaling(10, 0.01, 10)),
-        .material = floor.material,
-    };
+        .material = floor.material(),
+    });
 
-    const middle = Sphere{
+    const middle = Shape.newSphere(.{
         .transform = tsfm.translation(-0.3, 1, 0.5),
         .material = Material{
             .color = Color.init(0.1, 1, 0.5),
             .diffuse = 0.7,
             .specular = 0.3,
         },
-    };
+    });
 
-    const left = Sphere{
+    const left = Shape.newSphere(.{
         .transform = tsfm.translation(-1.4, 2.0, -1.1)
             .mul(&tsfm.scaling(0.33, 0.33, 0.33)),
         .material = Material{
@@ -327,7 +327,7 @@ test "Chapter 8: Putting it together" {
             .diffuse = 0.7,
             .specular = 0.3,
         },
-    };
+    });
 
     var world = try World.init(gpa);
     defer world.deinit();

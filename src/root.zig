@@ -12,6 +12,7 @@ pub const light = @import("light.zig");
 pub const material = @import("material.zig");
 pub const world = @import("world.zig");
 pub const camera = @import("camera.zig");
+pub const shape = @import("shape.zig");
 
 test {
     std.testing.refAllDecls(@This());

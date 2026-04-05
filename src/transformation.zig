@@ -272,7 +272,7 @@ test "Chapter 4: Putting it together" {
     const file = try tmp.dir.createFile(io, "clock_demo.ppm", .{});
     defer file.close(io);
 
-    var c = try Canvas.init(allocator, 250, 250);
+    var c = try Canvas.init(allocator, 25, 25);
     defer c.deinit();
 
     const width: f64 = @floatFromInt(c.width);

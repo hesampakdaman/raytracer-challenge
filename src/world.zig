@@ -13,20 +13,20 @@ const num = @import("num.zig");
 const Point = @import("tuple.zig").Point;
 const PointLight = @import("light.zig").PointLight;
 const Ray = @import("ray.zig").Ray;
-const Sphere = @import("sphere.zig").Sphere;
+const Shape = @import("shape.zig").Shape;
 const tsfm = @import("transformation.zig");
 const Vector = @import("tuple.zig").Vector;
 
 pub const World = struct {
     gpa: Allocator,
     light: ?PointLight,
-    objects: std.ArrayList(Sphere),
+    objects: std.ArrayList(Shape),
 
     pub fn init(gpa: Allocator) !World {
         return World{
             .gpa = gpa,
             .light = null,
-            .objects = try std.ArrayList(Sphere).initCapacity(gpa, 10),
+            .objects = try std.ArrayList(Shape).initCapacity(gpa, 10),
         };
     }
 
@@ -40,13 +40,15 @@ pub const World = struct {
             Color.init(1, 1, 1),
         );
 
-        var objects = try std.ArrayList(Sphere).initCapacity(gpa, 10);
-        try objects.append(gpa, Sphere{ .material = .{
+        var objects = try std.ArrayList(Shape).initCapacity(gpa, 10);
+        try objects.append(gpa, Shape.newSphere(.{ .material = .{
             .color = Color.init(0.8, 1.0, 0.6),
             .diffuse = 0.7,
             .specular = 0.2,
-        } });
-        try objects.append(gpa, Sphere{ .transform = tsfm.scaling(0.5, 0.5, 0.5) });
+        } }));
+        try objects.append(gpa, Shape.newSphere(.{
+            .transform = tsfm.scaling(0.5, 0.5, 0.5),
+        }));
 
         return World{
             .gpa = gpa,
@@ -55,7 +57,7 @@ pub const World = struct {
         };
     }
 
-    pub fn contains(self: *const World, target: *const Sphere) bool {
+    pub fn contains(self: *const World, target: *const Shape) bool {
         for (self.objects.items) |s| {
             if (s.approxEq(target)) return true;
         }
@@ -66,20 +68,20 @@ pub const World = struct {
         var out: [32]Intersection = undefined;
         var n_objs: usize = 0;
         for (self.objects.items) |*obj| {
-            const xs = obj.intersect(r.*);
+            const xs = obj.intersect(r);
             for (0..xs.count) |i| {
                 out[n_objs] = xs.items[i];
                 n_objs += 1;
             }
         }
 
-        return Intersections.fromSlice(out[0..n_objs]);
+        return Intersections.fromIntersections(out[0..n_objs]);
     }
 
     pub fn shadeHit(self: *const World, comps: *const Computations) Color {
         assert(self.light != null);
         const shadowed = self.isShadowed(comps.over_point);
-        return comps.object.material.lighting(
+        return comps.object.material().lighting(
             self.light.?,
             comps.point,
             comps.eyev,
@@ -126,14 +128,14 @@ test "Creating a world" {
 test "The default world" {
     // Given
     const light = PointLight.init(Point.init(-10, 10, -10), Color.init(1, 1, 1));
-    const s1 = Sphere{
+    const s1 = Shape.newSphere(.{
         .material = Material{
             .color = Color.init(0.8, 1.0, 0.6),
             .diffuse = 0.7,
             .specular = 0.2,
         },
-    };
-    const s2 = Sphere{ .transform = tsfm.scaling(0.5, 0.5, 0.5) };
+    });
+    const s2 = Shape.newSphere(.{ .transform = tsfm.scaling(0.5, 0.5, 0.5) });
 
     // When
     var w = try World.default(std.testing.allocator);
@@ -226,16 +228,20 @@ test "The color with an intersection behind the ray" {
     var w = try World.default(std.testing.allocator);
     defer w.deinit();
     var outer = &w.objects.items[0];
-    outer.material.ambient = 1;
+    var m = outer.material();
+    m.ambient = 1;
+    outer.setMaterial(m);
     var inner = &w.objects.items[1];
-    inner.material.ambient = 1;
+    m = inner.material();
+    m.ambient = 1;
+    inner.setMaterial(m);
     const r = Ray.init(Point.init(0, 0, 0.75), Vector.init(0, 0, -1));
 
     // When
     const c = w.colorAt(&r);
 
     // Then
-    try expect.approxEqColor(inner.material.color, c);
+    try expect.approxEqColor(inner.material().color, c);
 }
 
 test "There is no shadow when nothing is collinear with point and light" {
@@ -294,8 +300,8 @@ test "shadeHit() is given an intersection in shadow" {
 
     w.light = PointLight.init(Point.init(0, 0, -10), Color.White());
 
-    const s1 = Sphere.default();
-    const s2 = Sphere{ .transform = tsfm.translation(0, 0, 10) };
+    const s1 = Shape.newSphere(.{});
+    const s2 = Shape.newSphere(.{ .transform = tsfm.translation(0, 0, 10) });
     try w.objects.append(gpa, s1);
     try w.objects.append(gpa, s2);
 
