@@ -36,7 +36,20 @@ pub fn approxEqVector(expected: Vector, actual: Vector) !void {
 }
 
 pub fn approxEqColor(expected: Color, actual: Color) !void {
-    return approxEqTuple(expected.t, actual.t);
+    if (!expected.approxEq(actual)) {
+        std.debug.print(
+            \\ Mismatch
+            \\  expect:    ({d}, {d}, {d})
+            \\  got:       ({d}, {d}, {d})
+            \\  diff:      ({d}, {d}, {d})
+            \\
+        , .{
+            expected.r(),              expected.g(),              expected.b(),
+            actual.r(),                actual.g(),                actual.b(),
+            expected.r() - actual.r(), expected.g() - actual.g(), expected.b() - actual.b(),
+        });
+        return error.TestExpectedApproxEq;
+    }
 }
 
 pub fn approxEqMatrix(comptime N: usize, expected: *const Matrix(N), actual: *const Matrix(N)) !void {
