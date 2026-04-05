@@ -69,7 +69,7 @@ pub const Canvas = struct {
             var line_len: usize = 0;
             for (0..self.width) |x| {
                 const pixel = self.pixelAt(x, y);
-                for ([_]f64{ pixel.red(), pixel.green(), pixel.blue() }) |ch| {
+                for ([_]f64{ pixel.r(), pixel.g(), pixel.b() }) |ch| {
                     const ch_digit = self.normalizeColor(ch);
                     const num_digits: usize = if (ch_digit >= 100) 3 else if (ch_digit >= 10) 2 else 1;
                     if (self.needsWrap(line_len, num_digits)) {

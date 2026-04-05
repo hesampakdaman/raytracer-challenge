@@ -145,7 +145,7 @@ test "Lightning with the surface in shadow" {
     const ctx = TestContext{};
     const eyev = Vector.init(0, 0, -1);
     const normalv = Vector.init(0, 0, -1);
-    const light = PointLight.init(Point.init(0, 0, -10), Color.White());
+    const light = PointLight.init(Point.init(0, 0, -10), Color.white());
     const in_shadow = true;
 
     // When

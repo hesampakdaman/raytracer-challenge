@@ -1,33 +1,32 @@
 const std = @import("std");
 
 const num = @import("num.zig");
-
 const Tuple = @import("tuple.zig").Tuple;
 
 pub const Color = struct {
     t: Tuple,
 
-    pub fn init(r: f64, g: f64, b: f64) Color {
-        return .{ .t = Tuple.init(r, g, b, 0) };
+    pub fn init(rval: f64, gval: f64, bval: f64) Color {
+        return .{ .t = Tuple.init(rval, gval, bval, 0) };
     }
 
-    pub fn Black() Color {
+    pub fn black() Color {
         return .{ .t = Tuple.zeros() };
     }
 
-    pub fn White() Color {
+    pub fn white() Color {
         return .{ .t = Tuple.ones() };
     }
 
-    pub fn red(self: Color) f64 {
+    pub fn r(self: Color) f64 {
         return self.t.x();
     }
 
-    pub fn green(self: Color) f64 {
+    pub fn g(self: Color) f64 {
         return self.t.y();
     }
 
-    pub fn blue(self: Color) f64 {
+    pub fn b(self: Color) f64 {
         return self.t.z();
     }
 
@@ -48,9 +47,9 @@ pub const Color = struct {
 
     pub fn hadamard_product(self: Color, other: Color) Color {
         return Color.init(
-            self.red() * other.red(),
-            self.green() * other.green(),
-            self.blue() * other.blue(),
+            self.r() * other.r(),
+            self.g() * other.g(),
+            self.b() * other.b(),
         );
     }
 
@@ -64,9 +63,9 @@ test "Colors are (red, green, blue) tuples" {
     const c = Color.init(-0.5, 0.4, 1.7);
 
     // Then
-    try std.testing.expectApproxEqAbs(-0.5, c.red(), num.epsilon);
-    try std.testing.expectApproxEqAbs(0.4, c.green(), num.epsilon);
-    try std.testing.expectApproxEqAbs(1.7, c.blue(), num.epsilon);
+    try std.testing.expectApproxEqAbs(-0.5, c.r(), num.epsilon);
+    try std.testing.expectApproxEqAbs(0.4, c.g(), num.epsilon);
+    try std.testing.expectApproxEqAbs(1.7, c.b(), num.epsilon);
 }
 
 test "Adding colors" {

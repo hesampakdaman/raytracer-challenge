@@ -96,7 +96,7 @@ pub const World = struct {
             const comps = x.prepareComputations(r.*);
             return self.shadeHit(&comps);
         }
-        return Color.Black();
+        return Color.black();
     }
 
     pub fn isShadowed(self: *const World, point: Point) bool {
@@ -184,7 +184,7 @@ test "Shading an intersection from the inside" {
     // Given
     var w = try World.default(std.testing.allocator);
     defer w.deinit();
-    w.light = PointLight.init(Point.init(0, 0.25, 0), Color.White());
+    w.light = PointLight.init(Point.init(0, 0.25, 0), Color.white());
     const r = Ray.init(Point.zero(), Vector.init(0, 0, 1));
     const shape = &w.objects.items[1];
     const i = Intersection.init(0.5, shape);
@@ -207,7 +207,7 @@ test "The color when a ray misses" {
     const c = w.colorAt(&r);
 
     // Then
-    try expect.approxEqColor(Color.Black(), c);
+    try expect.approxEqColor(Color.black(), c);
 }
 
 test "The color when a ray hits" {
@@ -298,7 +298,7 @@ test "shadeHit() is given an intersection in shadow" {
     var w = try World.default(gpa);
     defer w.deinit();
 
-    w.light = PointLight.init(Point.init(0, 0, -10), Color.White());
+    w.light = PointLight.init(Point.init(0, 0, -10), Color.white());
 
     const s1 = Shape.newSphere(.{});
     const s2 = Shape.newSphere(.{ .transform = tsfm.translation(0, 0, 10) });

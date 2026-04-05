@@ -248,7 +248,7 @@ test "Chapter 7: Putting it together" {
 
     var world = try World.init(gpa);
     defer world.deinit();
-    world.light = PointLight.init(Point.init(-10, 10, -10), Color.White());
+    world.light = PointLight.init(Point.init(-10, 10, -10), Color.white());
 
     try world.objects.append(gpa, floor);
     try world.objects.append(gpa, left_wall);
@@ -331,7 +331,7 @@ test "Chapter 8: Putting it together" {
 
     var world = try World.init(gpa);
     defer world.deinit();
-    world.light = PointLight.init(Point.init(-10, 10, -10), Color.White());
+    world.light = PointLight.init(Point.init(-10, 10, -10), Color.white());
 
     try world.objects.append(gpa, floor);
     try world.objects.append(gpa, left_wall);
@@ -343,6 +343,80 @@ test "Chapter 8: Putting it together" {
     camera.transform = tsfm.viewTransform(
         Point.init(0, 1.5, -5),
         Point.init(-0.2, 1.3, -1),
+        Vector.init(0, 1, 0),
+    );
+
+    var canvas = try camera.render(gpa, &world);
+    defer canvas.deinit();
+    try canvas.savePpm(io, file);
+}
+
+test "Chapter 9: Putting it together" {
+    const Io = std.Io;
+    const Material = @import("material.zig").Material;
+    const PointLight = @import("light.zig").PointLight;
+
+    const gpa = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var threaded = Io.Threaded.init(gpa, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
+
+    const file = try tmp.dir.createFile(io, "chapter_9_plane_demo.ppm", .{});
+    defer file.close(io);
+
+    const floor = Shape.newPlane(.{
+        .material = Material{
+            .color = Color.init(1, 0.9, 0.9),
+            .specular = 0,
+        },
+    });
+
+    const middle = Shape.newSphere(.{
+        .transform = tsfm.translation(-0.5, 1, 0.5),
+        .material = Material{
+            .color = Color.init(0.1, 1, 0.5),
+            .diffuse = 0.7,
+            .specular = 0.3,
+        },
+    });
+
+    const right = Shape.newSphere(.{
+        .transform = tsfm.translation(1.5, 0.5, -0.5)
+            .mul(&tsfm.scaling(0.5, 0.5, 0.5)),
+        .material = Material{
+            .color = Color.init(0.5, 1, 0.1),
+            .diffuse = 0.7,
+            .specular = 0.3,
+        },
+    });
+
+    const left = Shape.newSphere(.{
+        .transform = tsfm.translation(-1.5, 0.33, -0.75)
+            .mul(&tsfm.scaling(0.33, 0.33, 0.33)),
+        .material = Material{
+            .color = Color.init(1, 0.8, 0.1),
+            .diffuse = 0.7,
+            .specular = 0.3,
+        },
+    });
+
+    var world = try World.init(gpa);
+    defer world.deinit();
+    world.light = PointLight.init(Point.init(-10, 10, -10), Color.white());
+
+    try world.objects.append(gpa, floor);
+    try world.objects.append(gpa, middle);
+    try world.objects.append(gpa, right);
+    try world.objects.append(gpa, left);
+
+    var camera = Camera.init(10, 5, num.pi / 3.0);
+    camera.transform = tsfm.viewTransform(
+        Point.init(0, 1.5, -5),
+        Point.init(0, 1, 0),
         Vector.init(0, 1, 0),
     );
 

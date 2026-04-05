@@ -7,6 +7,7 @@ const Intersections = @import("intersection.zig").Intersections;
 const Mat4 = @import("matrix.zig").Mat4;
 const Material = @import("material.zig").Material;
 const num = @import("num.zig");
+const Plane = @import("plane.zig").Plane;
 const Point = @import("tuple.zig").Point;
 const Ray = @import("ray.zig").Ray;
 const Sphere = @import("sphere.zig").Sphere;
@@ -32,6 +33,7 @@ const Vector = @import("tuple.zig").Vector;
 /// and must not apply transforms themselves.
 pub const Shape = union(enum) {
     sphere: Sphere,
+    plane: Plane,
     testShape: if (builtin.is_test) TestShape else void,
 
     pub fn newSphere(args: struct {
@@ -44,6 +46,12 @@ pub const Shape = union(enum) {
                 .material = args.material,
             },
         };
+    }
+
+    pub fn newPlane(args: struct { material: Material = .{} }) Shape {
+        return .{ .plane = .{
+            .material = args.material,
+        } };
     }
 
     pub fn intersect(self: *const Shape, r: *const Ray) Intersections {
@@ -237,15 +245,15 @@ test "Computing the normal on a transformed sphere" {
 test "Intersect sets the object on the intersection" {
     // Given
     const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
-    const s = &Shape{ .sphere = Sphere{} };
+    const s = Shape.newSphere(.{});
 
     // When
     const xs = s.intersect(&r);
 
     // Then
     try std.testing.expectEqual(2, xs.count);
-    try std.testing.expectEqual(s, xs.items[0].object);
-    try std.testing.expectEqual(s, xs.items[1].object);
+    try std.testing.expectEqual(&s, xs.items[0].object);
+    try std.testing.expectEqual(&s, xs.items[1].object);
 }
 
 test "A Sphere is a Shape" {
@@ -359,4 +367,30 @@ test "Chapter 6: Putting it together" {
     }
 
     try canvas.savePpm(io, file);
+}
+
+test "A ray intersecting a plane from above" {
+    // Given
+    const s = Shape.newPlane(.{});
+    const r = Ray.init(Point.init(0, 1, 0), Vector.init(0, -1, 0));
+
+    // When
+    const xs = s.intersect(&r);
+
+    // Then
+    try std.testing.expectEqual(1, xs.count);
+    try std.testing.expectEqual(&s, xs.items[0].object);
+}
+
+test "A ray intersecting a plane from below" {
+    // Given
+    const s = Shape.newPlane(.{});
+    const r = Ray.init(Point.init(0, -1, 0), Vector.init(0, 1, 0));
+
+    // When
+    const xs = s.intersect(&r);
+
+    // Then
+    try std.testing.expectEqual(1, xs.count);
+    try std.testing.expectEqual(&s, xs.items[0].object);
 }
