@@ -53,6 +53,49 @@ pub const Intersection = struct {
     }
 };
 
+test "An intersection encapsulates t and object" {
+    // Given
+    const s = Shape.newSphere(.{});
+
+    // When
+    const i = Intersection{ .t = 3.5, .object = &s };
+
+    // Then
+    try std.testing.expectApproxEqAbs(3.5, i.t, num.epsilon);
+    try std.testing.expectEqual(&s, i.object);
+}
+
+test "Precomputing the state of an intersection" {
+    // Given
+    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
+    const shape = Shape.newSphere(.{});
+    const i = Intersection.init(4, &shape);
+
+    // When
+    const comps = i.prepareComputations(r);
+
+    // Then
+    try std.testing.expectEqual(i.object, comps.object);
+    try expect.approxEqPoint(Point.init(0, 0, -1), comps.point);
+    try expect.approxEqVector(Vector.init(0, 0, -1), comps.eyev);
+    try expect.approxEqVector(Vector.init(0, 0, -1), comps.normalv);
+}
+
+test "The hit should offset the point" {
+    const tsfm = @import("transformation.zig");
+    // Given
+    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
+    const shape = Shape.newSphere(.{ .transform = tsfm.translation(0, 0, 1) });
+    const i = Intersection.init(5, &shape);
+
+    // When
+    const comps = i.prepareComputations(r);
+
+    // Then
+    try std.testing.expect(comps.over_point.z() < -num.epsilon / 2.0);
+    try std.testing.expect(comps.point.z() > comps.over_point.z());
+}
+
 pub const Intersections = struct {
     items: [32]Intersection,
     count: usize,
@@ -113,18 +156,6 @@ pub const Intersections = struct {
         return a.t < b.t;
     }
 };
-
-test "An intersection encapsulates t and object" {
-    // Given
-    const s = Shape.newSphere(.{});
-
-    // When
-    const i = Intersection{ .t = 3.5, .object = &s };
-
-    // Then
-    try std.testing.expectApproxEqAbs(3.5, i.t, num.epsilon);
-    try std.testing.expectEqual(&s, i.object);
-}
 
 test "Aggregating intersections" {
     // Given
@@ -197,35 +228,4 @@ test "The hit is always the lowest non-negative intersection" {
 
     // Then
     try std.testing.expectEqual(i_4, i);
-}
-
-test "Precomputing the state of an intersection" {
-    // Given
-    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
-    const shape = Shape.newSphere(.{});
-    const i = Intersection.init(4, &shape);
-
-    // When
-    const comps = i.prepareComputations(r);
-
-    // Then
-    try std.testing.expectEqual(i.object, comps.object);
-    try expect.approxEqPoint(Point.init(0, 0, -1), comps.point);
-    try expect.approxEqVector(Vector.init(0, 0, -1), comps.eyev);
-    try expect.approxEqVector(Vector.init(0, 0, -1), comps.normalv);
-}
-
-test "The hit should offset the point" {
-    const tsfm = @import("transformation.zig");
-    // Given
-    const r = Ray.init(Point.init(0, 0, -5), Vector.init(0, 0, 1));
-    const shape = Shape.newSphere(.{ .transform = tsfm.translation(0, 0, 1) });
-    const i = Intersection.init(5, &shape);
-
-    // When
-    const comps = i.prepareComputations(r);
-
-    // Then
-    try std.testing.expect(comps.over_point.z() < -num.epsilon / 2.0);
-    try std.testing.expect(comps.point.z() > comps.over_point.z());
 }
