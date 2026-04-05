@@ -1,4 +1,5 @@
 const std = @import("std");
+const math = std.math;
 
 const num = @import("num.zig");
 const Tuple = @import("tuple.zig").Tuple;
@@ -15,7 +16,7 @@ pub const Color = struct {
     }
 
     pub fn white() Color {
-        return .{ .t = Tuple.ones() };
+        return .{ .t = Tuple.init(1, 1, 1, 0) };
     }
 
     pub fn r(self: Color) f64 {
@@ -54,7 +55,9 @@ pub const Color = struct {
     }
 
     pub fn approxEq(self: Color, other: Color) bool {
-        return self.t.approxEq(other.t);
+        return math.approxEqAbs(f64, self.r(), other.r(), num.epsilon) and
+            math.approxEqAbs(f64, self.g(), other.g(), num.epsilon) and
+            math.approxEqAbs(f64, self.b(), other.b(), num.epsilon);
     }
 };
 
