@@ -442,11 +442,13 @@ test "Chapter 10: Putting it together (Radial Gradient)" {
     defer world.deinit();
     world.light = PointLight.init(Point.init(-10, 10, -10), Color.white());
 
+    const a = Pattern.newSolid(Color.init(0.95, 0.25, 0.10));
+    const b = Pattern.newSolid(Color.init(0.95, 0.75, 0.20));
     const floor = Shape.newPlane(.{
         .material = Material{
             .pattern = Pattern.newRadialGradient(.{
-                .a = Color.init(0.95, 0.25, 0.10),
-                .b = Color.init(0.95, 0.75, 0.20),
+                .a = &a,
+                .b = &b,
                 .transform = tsfm.scaling(5, 5, 5),
             }),
             .specular = 0,

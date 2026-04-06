@@ -162,7 +162,9 @@ test "Lightning with the surface in shadow" {
 test "Lighting with a pattern applied" {
     // Given
     var ctx = TestContext{};
-    ctx.m.pattern = Pattern.newStripe(.{ .a = Color.white(), .b = Color.black() });
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    ctx.m.pattern = Pattern.newStripe(.{ .a = &white, .b = &black });
     ctx.m.ambient = 1;
     ctx.m.diffuse = 0;
     ctx.m.specular = 0;

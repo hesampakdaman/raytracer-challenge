@@ -18,19 +18,19 @@ pub const Pattern = union(enum) {
     stripe: Stripe,
     testPattern: if (builtin.is_test) TestPattern else void,
 
-    pub fn newCheckers(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
+    pub fn newCheckers(args: struct { a: *const Pattern, b: *const Pattern, transform: Mat4 = Mat4.identity() }) Pattern {
         return .{ .checkers = .{ .a = args.a, .b = args.b, .transform = args.transform } };
     }
 
-    pub fn newGradient(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
+    pub fn newGradient(args: struct { a: *const Pattern, b: *const Pattern, transform: Mat4 = Mat4.identity() }) Pattern {
         return .{ .gradient = .{ .a = args.a, .b = args.b, .transform = args.transform } };
     }
 
-    pub fn newRadialGradient(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
+    pub fn newRadialGradient(args: struct { a: *const Pattern, b: *const Pattern, transform: Mat4 = Mat4.identity() }) Pattern {
         return .{ .radial_gradient = .{ .a = args.a, .b = args.b, .transform = args.transform } };
     }
 
-    pub fn newRing(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
+    pub fn newRing(args: struct { a: *const Pattern, b: *const Pattern, transform: Mat4 = Mat4.identity() }) Pattern {
         return .{ .ring = .{ .a = args.a, .b = args.b, .transform = args.transform } };
     }
 
@@ -38,7 +38,7 @@ pub const Pattern = union(enum) {
         return .{ .solid = .{ .color = color } };
     }
 
-    pub fn newStripe(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
+    pub fn newStripe(args: struct { a: *const Pattern, b: *const Pattern, transform: Mat4 = Mat4.identity() }) Pattern {
         return .{ .stripe = .{ .a = args.a, .b = args.b, .transform = args.transform } };
     }
 
@@ -61,23 +61,31 @@ pub const Pattern = union(enum) {
             inline else => |*p| p.transform = t,
         };
     }
+
+    fn patternAt(self: *const Pattern, point: Point) Color {
+        return switch (self.*) {
+            inline else => |*p| p.patternAt(point),
+        };
+    }
 };
 
 const Checkers = struct {
-    a: Color,
-    b: Color,
+    a: *const Pattern,
+    b: *const Pattern,
     transform: Mat4 = Mat4.identity(),
 
     fn patternAt(self: *const Checkers, p: Point) Color {
         // Like stripes, but alternating in x, y, and z
         const cell = @floor(p.x()) + @floor(p.y()) + @floor(p.z());
-        return if (@mod(cell, 2) == 0) self.a else self.b;
+        return if (@mod(cell, 2) == 0) self.a.patternAt(p) else self.b.patternAt(p);
     }
 };
 
 test "Checkers should repeat in x" {
     // Given
-    const pattern = Checkers{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Checkers{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -87,7 +95,9 @@ test "Checkers should repeat in x" {
 
 test "Checkers should repeat in y" {
     // Given
-    const pattern = Checkers{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Checkers{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -97,7 +107,9 @@ test "Checkers should repeat in y" {
 
 test "Checkers should repeat in z" {
     // Given
-    const pattern = Checkers{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Checkers{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -106,21 +118,24 @@ test "Checkers should repeat in z" {
 }
 
 const Gradient = struct {
-    a: Color,
-    b: Color,
+    a: *const Pattern,
+    b: *const Pattern,
     transform: Mat4 = Mat4.identity(),
 
     fn patternAt(self: *const Gradient, p: Point) Color {
-        // linear combination a + (b - a) * (pₓ - ⌊pₓ⌋)
-        const distance = self.b.sub(self.a);
+        // linear combination ca + (cb - ca) * (pₓ - ⌊pₓ⌋)
+        const ca, const cb = .{ self.a.patternAt(p), self.b.patternAt(p) };
+        const distance = cb.sub(ca);
         const fraction = p.x() - @floor(p.x());
-        return self.a.add(distance.mul(fraction));
+        return ca.add(distance.mul(fraction));
     }
 };
 
 test "A gradient linearly interpolates between colors" {
     // Given
-    const pattern = Gradient{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Gradient{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -130,21 +145,23 @@ test "A gradient linearly interpolates between colors" {
 }
 
 const Ring = struct {
-    a: Color,
-    b: Color,
+    a: *const Pattern,
+    b: *const Pattern,
     transform: Mat4 = Mat4.identity(),
 
     fn patternAt(self: *const Ring, p: Point) Color {
         // check where the r := ⌊√(x² + z²)⌋ lie within an
         // alternating band
         const r = math.sqrt(p.x() * p.x() + p.z() * p.z());
-        return if (@mod(math.floor(r), 2) == 0) self.a else self.b;
+        return if (@mod(math.floor(r), 2) == 0) self.a.patternAt(p) else self.b.patternAt(p);
     }
 };
 
 test "A ring should extend in both x and z" {
     // Given
-    const pattern = Ring{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Ring{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -154,21 +171,24 @@ test "A ring should extend in both x and z" {
 }
 
 const RadialGradient = struct {
-    a: Color,
-    b: Color,
+    a: *const Pattern,
+    b: *const Pattern,
     transform: Mat4 = Mat4.identity(),
 
     fn patternAt(self: *const RadialGradient, p: Point) Color {
-        const distance = self.b.sub(self.a);
+        const ca, const cb = .{ self.a.patternAt(p), self.b.patternAt(p) };
+        const distance = cb.sub(ca);
         const r = math.sqrt(p.x() * p.x() + p.z() * p.z());
         const fraction = r - @floor(r);
-        return self.a.add(distance.mul(fraction));
+        return ca.add(distance.mul(fraction));
     }
 };
 
 test "A radial gradient linearly interpolates in radius" {
     // Given
-    const pattern = RadialGradient{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = RadialGradient{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -187,28 +207,32 @@ const Solid = struct {
 };
 
 const Stripe = struct {
-    a: Color,
-    b: Color,
+    a: *const Pattern,
+    b: *const Pattern,
     transform: Mat4 = Mat4.identity(),
 
     fn patternAt(self: *const Stripe, point: Point) Color {
         const x = @floor(point.x());
-        return if (@mod(x, 2) == 0) self.a else self.b;
+        return if (@mod(x, 2) == 0) self.a.patternAt(point) else self.b.patternAt(point);
     }
 };
 
 test "Creating a stripe pattern" {
     // Given
-    const pattern = Stripe{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Stripe{ .a = &white, .b = &black };
 
     // Then
-    try expect.approxEqColor(Color.white(), pattern.a);
-    try expect.approxEqColor(Color.black(), pattern.b);
+    try expect.approxEqColor(Color.white(), pattern.a.patternAt(Point.zero()));
+    try expect.approxEqColor(Color.black(), pattern.b.patternAt(Point.zero()));
 }
 
 test "A stripe pattern is constant in y" {
     // Given
-    const pattern = Stripe{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Stripe{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -218,7 +242,9 @@ test "A stripe pattern is constant in y" {
 
 test "A stripe pattern is constant in z" {
     // Given
-    const pattern = Stripe{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Stripe{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
@@ -228,7 +254,9 @@ test "A stripe pattern is constant in z" {
 
 test "A stripe pattern is alternates in x" {
     // Given
-    const pattern = Stripe{ .a = Color.white(), .b = Color.black() };
+    const white = Pattern.newSolid(Color.white());
+    const black = Pattern.newSolid(Color.black());
+    const pattern = Stripe{ .a = &white, .b = &black };
 
     // Then
     try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
