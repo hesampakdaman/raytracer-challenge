@@ -1,6 +1,6 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const math = std.math;
+const builtin = @import("builtin");
 
 const Color = @import("color.zig").Color;
 const expect = @import("expect.zig");
@@ -12,7 +12,9 @@ const tsfm = @import("transformation.zig");
 pub const Pattern = union(enum) {
     checkers: Checkers,
     gradient: Gradient,
+    radial_gradient: RadialGradient,
     ring: Ring,
+    solid: Solid,
     stripe: Stripe,
     testPattern: if (builtin.is_test) TestPattern else void,
 
@@ -24,8 +26,16 @@ pub const Pattern = union(enum) {
         return .{ .gradient = .{ .a = args.a, .b = args.b, .transform = args.transform } };
     }
 
+    pub fn newRadialGradient(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
+        return .{ .radial_gradient = .{ .a = args.a, .b = args.b, .transform = args.transform } };
+    }
+
     pub fn newRing(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
         return .{ .ring = .{ .a = args.a, .b = args.b, .transform = args.transform } };
+    }
+
+    pub fn newSolid(color: Color) Pattern {
+        return .{ .solid = .{ .color = color } };
     }
 
     pub fn newStripe(args: struct { a: Color, b: Color, transform: Mat4 = Mat4.identity() }) Pattern {
@@ -100,10 +110,10 @@ const Gradient = struct {
     b: Color,
     transform: Mat4 = Mat4.identity(),
 
-    fn patternAt(self: *const Gradient, point: Point) Color {
+    fn patternAt(self: *const Gradient, p: Point) Color {
         // linear combination a + (b - a) * (pₓ - ⌊pₓ⌋)
         const distance = self.b.sub(self.a);
-        const fraction = point.x() - @floor(point.x());
+        const fraction = p.x() - @floor(p.x());
         return self.a.add(distance.mul(fraction));
     }
 };
@@ -124,10 +134,10 @@ const Ring = struct {
     b: Color,
     transform: Mat4 = Mat4.identity(),
 
-    fn patternAt(self: *const Ring, point: Point) Color {
+    fn patternAt(self: *const Ring, p: Point) Color {
         // check where the r := ⌊√(x² + z²)⌋ lie within an
         // alternating band
-        const r = math.sqrt(point.x() * point.x() + point.z() * point.z());
+        const r = math.sqrt(p.x() * p.x() + p.z() * p.z());
         return if (@mod(math.floor(r), 2) == 0) self.a else self.b;
     }
 };
@@ -142,6 +152,39 @@ test "A ring should extend in both x and z" {
     try expect.approxEqColor(Color.black(), pattern.patternAt(Point.init(0, 0, 1)));
     try expect.approxEqColor(Color.black(), pattern.patternAt(Point.init(0.708, 0, 0.708)));
 }
+
+const RadialGradient = struct {
+    a: Color,
+    b: Color,
+    transform: Mat4 = Mat4.identity(),
+
+    fn patternAt(self: *const RadialGradient, p: Point) Color {
+        const distance = self.b.sub(self.a);
+        const r = math.sqrt(p.x() * p.x() + p.z() * p.z());
+        const fraction = r - @floor(r);
+        return self.a.add(distance.mul(fraction));
+    }
+};
+
+test "A radial gradient linearly interpolates in radius" {
+    // Given
+    const pattern = RadialGradient{ .a = Color.white(), .b = Color.black() };
+
+    // Then
+    try expect.approxEqColor(Color.white(), pattern.patternAt(Point.zero()));
+    try expect.approxEqColor(Color.init(0.75, 0.75, 0.75), pattern.patternAt(Point.init(0.25, 0, 0)));
+    try expect.approxEqColor(Color.init(0.50, 0.50, 0.50), pattern.patternAt(Point.init(0.50, 0, 0)));
+    try expect.approxEqColor(Color.init(0.25, 0.25, 0.25), pattern.patternAt(Point.init(0.75, 0, 0)));
+}
+
+const Solid = struct {
+    color: Color,
+    transform: Mat4 = Mat4.identity(),
+
+    fn patternAt(self: *const Solid, _: Point) Color {
+        return self.color;
+    }
+};
 
 const Stripe = struct {
     a: Color,

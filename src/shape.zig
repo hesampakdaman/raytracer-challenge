@@ -48,8 +48,9 @@ pub const Shape = union(enum) {
         };
     }
 
-    pub fn newPlane(args: struct { material: Material = .{} }) Shape {
+    pub fn newPlane(args: struct { material: Material = .{}, transform: Mat4 = Mat4.identity() }) Shape {
         return .{ .plane = .{
+            .transform = args.transform,
             .material = args.material,
         } };
     }
