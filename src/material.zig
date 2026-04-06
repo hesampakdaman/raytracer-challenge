@@ -19,7 +19,7 @@ pub const Material = struct {
     shininess: f32 = 200.0,
     pattern: ?Pattern = null,
 
-    pub fn lighting(self: Material, shape: *const Shape, light: PointLight, point: Point, eyev: Vector, normalv: Vector, in_shadow: bool) Color {
+    pub fn lighting(self: *const Material, shape: *const Shape, light: PointLight, point: Point, eyev: Vector, normalv: Vector, in_shadow: bool) Color {
         const color = if (self.pattern) |p| p.patternAtShape(shape, point) else self.color;
         // ambient light is uniformly applied
         const effective_color = color.hadamard_product(light.intensity);
