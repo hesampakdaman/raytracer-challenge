@@ -1,20 +1,24 @@
 const std = @import("std");
 const math = std.math;
 const Allocator = std.mem.Allocator;
+const Io = std.Io;
 
 const Canvas = @import("canvas.zig").Canvas;
 const Color = @import("color.zig").Color;
 const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;
+const Material = @import("material.zig").Material;
 const num = @import("num.zig");
+const Pattern = @import("pattern.zig").Pattern;
 const Point = @import("tuple.zig").Point;
+const PointLight = @import("light.zig").PointLight;
 const Ray = @import("ray.zig").Ray;
 const Shape = @import("shape.zig").Shape;
 const tsfm = @import("transformation.zig");
 const Vector = @import("tuple.zig").Vector;
 const World = @import("world.zig").World;
 
-const Camera = struct {
+pub const Camera = struct {
     hsize: usize,
     vsize: usize,
     field_of_view: f64,
@@ -177,10 +181,6 @@ test "Rendering a world with a camera" {
 }
 
 test "Chapter 7: Putting it together" {
-    const Io = std.Io;
-    const Material = @import("material.zig").Material;
-    const PointLight = @import("light.zig").PointLight;
-
     const gpa = std.testing.allocator;
 
     var tmp = std.testing.tmpDir(.{});
@@ -270,10 +270,6 @@ test "Chapter 7: Putting it together" {
 }
 
 test "Chapter 8: Putting it together" {
-    const Io = std.Io;
-    const Material = @import("material.zig").Material;
-    const PointLight = @import("light.zig").PointLight;
-
     const gpa = std.testing.allocator;
 
     var tmp = std.testing.tmpDir(.{});
@@ -352,10 +348,6 @@ test "Chapter 8: Putting it together" {
 }
 
 test "Chapter 9: Putting it together" {
-    const Io = std.Io;
-    const Material = @import("material.zig").Material;
-    const PointLight = @import("light.zig").PointLight;
-
     const gpa = std.testing.allocator;
 
     var tmp = std.testing.tmpDir(.{});
@@ -419,6 +411,49 @@ test "Chapter 9: Putting it together" {
         Point.init(0, 1, 0),
         Vector.init(0, 1, 0),
     );
+
+    var canvas = try camera.render(gpa, &world);
+    defer canvas.deinit();
+    try canvas.savePpm(io, file);
+}
+
+test "Chapter 10: Putting it together (Radial Gradient)" {
+    const gpa = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var threaded = Io.Threaded.init(gpa, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
+
+    const file = try tmp.dir.createFile(io, "chapter_10_radial_gradient.ppm", .{});
+    defer file.close(io);
+
+    var camera = Camera.init(50, 25, num.pi / 2);
+    camera.transform = tsfm.viewTransform(
+        // look straight down
+        Point.init(0, 13, 0),
+        Point.init(0, 0, 0),
+        Vector.init(1, 0, 0),
+    );
+
+    var world = try World.init(gpa);
+    defer world.deinit();
+    world.light = PointLight.init(Point.init(-10, 10, -10), Color.white());
+
+    const floor = Shape.newPlane(.{
+        .material = Material{
+            .pattern = Pattern.newRadialGradient(.{
+                .a = Color.init(0.95, 0.25, 0.10),
+                .b = Color.init(0.95, 0.75, 0.20),
+                .transform = tsfm.scaling(5, 5, 5),
+            }),
+            .specular = 0,
+            .ambient = 0.25,
+        },
+    });
+    try world.objects.append(gpa, floor);
 
     var canvas = try camera.render(gpa, &world);
     defer canvas.deinit();
