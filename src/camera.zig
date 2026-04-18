@@ -461,3 +461,120 @@ test "Chapter 10: Putting it together (Radial Gradient)" {
     defer canvas.deinit();
     try canvas.savePpm(io, file);
 }
+
+test "Chapter 10: Putting it together (Nested pattern)" {
+    const gpa = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var threaded = Io.Threaded.init(gpa, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
+
+    const file = try tmp.dir.createFile(io, "chapter_10_nested_pattern.ppm", .{});
+    defer file.close(io);
+
+    var camera = Camera.init(50, 25, num.pi / 2);
+    camera.transform = tsfm.viewTransform(
+        // look straight down
+        Point.init(0, 13, 0),
+        Point.init(0, 0, 0),
+        Vector.init(1, 0, 0),
+    );
+
+    var world = try World.init(gpa);
+    defer world.deinit();
+    world.light = PointLight.init(Point.init(-10, 10, -10), Color.white());
+
+    const dark = Pattern.newSolid(Color.init(0.20, 0.20, 0.20));
+    const gray = Pattern.newSolid(Color.init(0.50, 0.50, 0.50));
+    const magenta_dark = Pattern.newSolid(Color.init(0.45, 0.12, 0.22));
+    const magenta_light = Pattern.newSolid(Color.init(0.75, 0.30, 0.42));
+
+    const stripes_a = Pattern.newStripe(.{
+        .a = &dark,
+        .b = &gray,
+        .transform = tsfm.rotationY(num.pi / 4.0).mul(&tsfm.scaling(0.20, 0.20, 0.20)),
+    });
+    const stripes_b = Pattern.newStripe(.{
+        .a = &magenta_dark,
+        .b = &magenta_light,
+        .transform = tsfm.rotationY(-num.pi / 4.0).mul(&tsfm.scaling(0.20, 0.20, 0.20)),
+    });
+
+    const nested = Pattern.newCheckers(.{
+        .a = &stripes_a,
+        .b = &stripes_b,
+        .transform = tsfm.scaling(1.5, 1.5, 1.5),
+    });
+
+    const floor = Shape.newPlane(.{
+        .material = Material{
+            .pattern = nested,
+            .specular = 0,
+            .ambient = 0.25,
+        },
+    });
+    try world.objects.append(gpa, floor);
+
+    var canvas = try camera.render(gpa, &world);
+    defer canvas.deinit();
+    try canvas.savePpm(io, file);
+}
+
+test "Chapter 10: Putting it together (Blended pattern)" {
+    const gpa = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var threaded = Io.Threaded.init(gpa, .{});
+    defer threaded.deinit();
+    const io = threaded.io();
+
+    const file = try tmp.dir.createFile(io, "chapter_10_blended_pattern.ppm", .{});
+    defer file.close(io);
+
+    var camera = Camera.init(50, 25, num.pi / 2);
+    camera.transform = tsfm.viewTransform(
+        // look straight down
+        Point.init(0, 13, 0),
+        Point.init(0, 0, 0),
+        Vector.init(1, 0, 0),
+    ).mul(&tsfm.rotationY(num.pi / 4.0));
+
+    var world = try World.init(gpa);
+    defer world.deinit();
+    world.light = PointLight.init(Point.init(-10, 10, -10), Color.white());
+
+    const white = Pattern.newSolid(Color.white());
+    const green = Pattern.newSolid(Color.init(0.2, 0.9, 0.4));
+
+    const stripe1 = Pattern.newStripe(.{
+        .a = &white,
+        .b = &green,
+        .transform = tsfm.scaling(0.25, 0.25, 0.25),
+    });
+    const stripe2 = Pattern.newStripe(.{
+        .a = &white,
+        .b = &green,
+        .transform = tsfm.rotationY(num.pi / 2.0).mul(&tsfm.scaling(0.25, 0.25, 0.25)),
+    });
+
+    const floor = Shape.newPlane(.{
+        .material = Material{
+            .pattern = Pattern.newBlended(.{
+                .a = &stripe1,
+                .b = &stripe2,
+            }),
+            .specular = 0,
+            .ambient = 0.25,
+        },
+    });
+    try world.objects.append(gpa, floor);
+
+    var canvas = try camera.render(gpa, &world);
+    defer canvas.deinit();
+    try canvas.savePpm(io, file);
+}

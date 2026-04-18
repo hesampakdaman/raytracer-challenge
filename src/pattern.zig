@@ -10,6 +10,7 @@ const Shape = @import("shape.zig").Shape;
 const tsfm = @import("transformation.zig");
 
 pub const Pattern = union(enum) {
+    blended: Blended,
     checkers: Checkers,
     gradient: Gradient,
     radial_gradient: RadialGradient,
@@ -17,6 +18,10 @@ pub const Pattern = union(enum) {
     solid: Solid,
     stripe: Stripe,
     testPattern: if (builtin.is_test) TestPattern else void,
+
+    pub fn newBlended(args: struct { a: *const Pattern, b: *const Pattern, transform: Mat4 = Mat4.identity() }) Pattern {
+        return .{ .blended = .{ .a = args.a, .b = args.b, .transform = args.transform } };
+    }
 
     pub fn newCheckers(args: struct { a: *const Pattern, b: *const Pattern, transform: Mat4 = Mat4.identity() }) Pattern {
         return .{ .checkers = .{ .a = args.a, .b = args.b, .transform = args.transform } };
@@ -63,9 +68,21 @@ pub const Pattern = union(enum) {
     }
 
     fn patternAt(self: *const Pattern, point: Point) Color {
+        const local_point = self.transform().inverse().apply(point);
         return switch (self.*) {
-            inline else => |*p| p.patternAt(point),
+            inline else => |*p| p.patternAt(local_point),
         };
+    }
+};
+
+const Blended = struct {
+    a: *const Pattern,
+    b: *const Pattern,
+    transform: Mat4 = Mat4.identity(),
+
+    fn patternAt(self: *const Blended, p: Point) Color {
+        const ca, const cb = .{ self.a.patternAt(p), self.b.patternAt(p) };
+        return cb.add(ca).mul(0.5);
     }
 };
 
