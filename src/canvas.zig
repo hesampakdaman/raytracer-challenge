@@ -3,8 +3,7 @@ const assert = std.debug.assert;
 const Allocator = std.mem.Allocator;
 const Io = std.Io;
 
-const color = @import("color.zig");
-const Color = color.Color;
+const Color = @import("Color.zig");
 
 pub const Canvas = struct {
     allocator: Allocator,

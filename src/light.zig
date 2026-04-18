@@ -2,10 +2,10 @@ const std = @import("std");
 
 const expect = @import("expect.zig");
 const num = @import("num.zig");
-const tup = @import("tuple.zig");
+const tup = @import("Tuple.zig");
 
-const Color = @import("color.zig").Color;
-const Point = tup.Point;
+const Color = @import("Color.zig");
+const Point = @import("Point.zig");
 
 pub const PointLight = struct {
     intensity: Color,

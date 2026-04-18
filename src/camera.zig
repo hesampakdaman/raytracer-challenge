@@ -4,18 +4,18 @@ const Allocator = std.mem.Allocator;
 const Io = std.Io;
 
 const Canvas = @import("canvas.zig").Canvas;
-const Color = @import("color.zig").Color;
+const Color = @import("Color.zig");
 const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;
 const Material = @import("material.zig").Material;
 const num = @import("num.zig");
 const Pattern = @import("pattern.zig").Pattern;
-const Point = @import("tuple.zig").Point;
+const Point = @import("Point.zig");
 const PointLight = @import("light.zig").PointLight;
 const Ray = @import("ray.zig").Ray;
 const Shape = @import("shape.zig").Shape;
 const tsfm = @import("transformation.zig");
-const Vector = @import("tuple.zig").Vector;
+const Vector = @import("Vector.zig");
 const World = @import("world.zig").World;
 
 pub const Camera = struct {

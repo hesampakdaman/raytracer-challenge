@@ -4,11 +4,11 @@ const pi: f64 = math.pi;
 
 const tsfm = @import("transformation.zig");
 const Canvas = @import("canvas.zig").Canvas;
-const Color = @import("color.zig").Color;
+const Color = @import("Color.zig");
 const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;
-const Point = @import("tuple.zig").Point;
-const Vector = @import("tuple.zig").Vector;
+const Point = @import("Point.zig");
+const Vector = @import("Vector.zig");
 
 pub fn translation(x: f64, y: f64, z: f64) Mat4 {
     return Mat4.identity().translate(x, y, z);

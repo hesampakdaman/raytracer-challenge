@@ -3,10 +3,10 @@ const assert = std.debug.assert;
 
 const expect = @import("expect.zig");
 const num = @import("num.zig");
-const Point = @import("tuple.zig").Point;
+const Point = @import("Point.zig");
 const Ray = @import("ray.zig").Ray;
 const Shape = @import("shape.zig").Shape;
-const Vector = @import("tuple.zig").Vector;
+const Vector = @import("Vector.zig");
 
 pub const Computations = struct {
     t: f64,

@@ -6,11 +6,11 @@ const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;
 const Material = @import("material.zig").Material;
 const num = @import("num.zig");
-const Point = @import("tuple.zig").Point;
+const Point = @import("Point.zig");
 const PointLight = @import("light.zig").PointLight;
 const Ray = @import("ray.zig").Ray;
 const tsfm = @import("transformation.zig");
-const Vector = @import("tuple.zig").Vector;
+const Vector = @import("Vector.zig");
 
 pub const Sphere = struct {
     transform: Mat4 = Mat4.identity(),

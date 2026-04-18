@@ -3,12 +3,12 @@ const math = std.math;
 
 const expect = @import("expect.zig");
 const num = @import("num.zig");
-const tup = @import("tuple.zig");
-const Color = @import("color.zig").Color;
-const Point = tup.Point;
+const tup = @import("Tuple.zig");
+const Color = @import("Color.zig");
+const Point = @import("Point.zig");
 const PointLight = @import("light.zig").PointLight;
 const Shape = @import("shape.zig").Shape;
-const Vector = tup.Vector;
+const Vector = @import("Vector.zig");
 const Pattern = @import("pattern.zig").Pattern;
 
 pub const Material = struct {

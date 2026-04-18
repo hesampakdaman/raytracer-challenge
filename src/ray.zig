@@ -4,8 +4,8 @@ const math = std.math;
 const num = @import("num.zig");
 const tsfm = @import("transformation.zig");
 
-const Point = @import("tuple.zig").Point;
-const Vector = @import("tuple.zig").Vector;
+const Point = @import("Point.zig");
+const Vector = @import("Vector.zig");
 const Mat4 = @import("matrix.zig").Mat4;
 
 pub const Ray = struct {

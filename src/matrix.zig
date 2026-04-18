@@ -4,9 +4,9 @@ const assert = std.debug.assert;
 
 const num = @import("num.zig");
 
-const Point = @import("tuple.zig").Point;
-const Tuple = @import("tuple.zig").Tuple;
-const Vector = @import("tuple.zig").Vector;
+const Point = @import("Point.zig");
+const Tuple = @import("Tuple.zig").Tuple;
+const Vector = @import("Vector.zig");
 pub const Mat2 = Matrix(2);
 pub const Mat3 = Matrix(3);
 pub const Mat4 = Matrix(4);

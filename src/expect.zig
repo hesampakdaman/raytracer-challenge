@@ -1,14 +1,14 @@
 const std = @import("std");
 
-const tup = @import("tuple.zig");
+const tup = @import("Tuple.zig");
 const num = @import("num.zig");
 
-const Color = @import("color.zig").Color;
+const Color = @import("Color.zig");
 const Material = @import("material.zig").Material;
 const Matrix = @import("matrix.zig").Matrix;
-const Point = tup.Point;
+const Point = @import("Point.zig");
 const Tuple = tup.Tuple;
-const Vector = tup.Vector;
+const Vector = @import("Vector.zig");
 
 pub fn approxEqTuple(expected: Tuple, actual: Tuple) !void {
     if (!expected.approxEq(actual)) {

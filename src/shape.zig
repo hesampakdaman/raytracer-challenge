@@ -8,11 +8,11 @@ const Mat4 = @import("matrix.zig").Mat4;
 const Material = @import("material.zig").Material;
 const num = @import("num.zig");
 const Plane = @import("plane.zig").Plane;
-const Point = @import("tuple.zig").Point;
+const Point = @import("Point.zig");
 const Ray = @import("ray.zig").Ray;
 const Sphere = @import("sphere.zig").Sphere;
 const tsfm = @import("transformation.zig");
-const Vector = @import("tuple.zig").Vector;
+const Vector = @import("Vector.zig");
 
 /// Shape is a tagged union over all renderable primitives.
 ///
@@ -270,7 +270,7 @@ test "A Sphere is a Shape" {
 
 test "Chapter 5: Putting it together" {
     const Canvas = @import("canvas.zig").Canvas;
-    const Color = @import("color.zig").Color;
+    const Color = @import("Color.zig");
 
     const allocator = std.testing.allocator;
     var tmp = std.testing.tmpDir(.{});
@@ -317,7 +317,7 @@ test "Chapter 5: Putting it together" {
 test "Chapter 6: Putting it together" {
     const PointLight = @import("light.zig").PointLight;
     const Canvas = @import("canvas.zig").Canvas;
-    const Color = @import("color.zig").Color;
+    const Color = @import("Color.zig");
 
     const allocator = std.testing.allocator;
     var tmp = std.testing.tmpDir(.{});

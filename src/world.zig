@@ -2,7 +2,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const assert = std.debug.assert;
 
-const Color = @import("color.zig").Color;
+const Color = @import("Color.zig");
 const expect = @import("expect.zig");
 const inter = @import("intersection.zig");
 const Intersection = inter.Intersection;
@@ -10,12 +10,12 @@ const Intersections = inter.Intersections;
 const Computations = inter.Computations;
 const Material = @import("material.zig").Material;
 const num = @import("num.zig");
-const Point = @import("tuple.zig").Point;
+const Point = @import("Point.zig");
 const PointLight = @import("light.zig").PointLight;
 const Ray = @import("ray.zig").Ray;
 const Shape = @import("shape.zig").Shape;
 const tsfm = @import("transformation.zig");
-const Vector = @import("tuple.zig").Vector;
+const Vector = @import("Vector.zig");
 
 pub const World = struct {
     gpa: Allocator,

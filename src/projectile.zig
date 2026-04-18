@@ -2,9 +2,9 @@ const std = @import("std");
 const Io = std.Io;
 
 const Canvas = @import("canvas.zig").Canvas;
-const Color = @import("color.zig").Color;
-const Point = @import("tuple.zig").Point;
-const Vector = @import("tuple.zig").Vector;
+const Color = @import("Color.zig");
+const Point = @import("Point.zig");
+const Vector = @import("Vector.zig");
 
 const Projectile = struct {
     position: Point,

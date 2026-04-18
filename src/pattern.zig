@@ -2,10 +2,10 @@ const std = @import("std");
 const math = std.math;
 const builtin = @import("builtin");
 
-const Color = @import("color.zig").Color;
+const Color = @import("Color.zig");
 const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;
-const Point = @import("tuple.zig").Point;
+const Point = @import("Point.zig");
 const Shape = @import("shape.zig").Shape;
 const tsfm = @import("transformation.zig");
 
