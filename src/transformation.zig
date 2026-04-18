@@ -3,7 +3,7 @@ const math = std.math;
 const pi: f64 = math.pi;
 
 const tsfm = @import("transformation.zig");
-const Canvas = @import("canvas.zig").Canvas;
+const Canvas = @import("Canvas.zig");
 const Color = @import("Color.zig");
 const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;

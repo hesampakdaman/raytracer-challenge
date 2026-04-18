@@ -12,49 +12,49 @@ const Ray = @import("ray.zig").Ray;
 const tsfm = @import("transformation.zig");
 const Vector = @import("Vector.zig");
 
-pub const Sphere = struct {
-    transform: Mat4 = Mat4.identity(),
-    material: Material = Material{},
+pub const Sphere = @This();
 
-    pub fn init(t: Mat4, m: Material) Sphere {
-        return Sphere{
-            .transform = t,
-            .material = m,
-        };
-    }
+transform: Mat4 = Mat4.identity(),
+material: Material = Material{},
 
-    pub fn default() Sphere {
-        return Sphere{};
-    }
+pub fn init(t: Mat4, m: Material) Sphere {
+    return Sphere{
+        .transform = t,
+        .material = m,
+    };
+}
 
-    pub fn localIntersect(_: *const Sphere, ray: *const Ray, buf: []f64) usize {
-        assert(buf.len >= 2);
-        // remember: the sphere is centered at the world origin
-        const sphere_to_ray = ray.origin.sub(Point.init(0, 0, 0));
+pub fn default() Sphere {
+    return Sphere{};
+}
 
-        const a = ray.direction.dot(ray.direction);
-        const b = 2 * ray.direction.dot(sphere_to_ray);
-        const c = sphere_to_ray.dot(sphere_to_ray) - 1;
+pub fn localIntersect(_: *const Sphere, ray: *const Ray, buf: []f64) usize {
+    assert(buf.len >= 2);
+    // remember: the sphere is centered at the world origin
+    const sphere_to_ray = ray.origin.sub(Point.init(0, 0, 0));
 
-        const discriminant = b * b - 4 * a * c;
-        if (discriminant < 0) return 0;
+    const a = ray.direction.dot(ray.direction);
+    const b = 2 * ray.direction.dot(sphere_to_ray);
+    const c = sphere_to_ray.dot(sphere_to_ray) - 1;
 
-        const root: f64 = math.sqrt(discriminant);
-        buf[0] = (-b - root) / (2 * a);
-        buf[1] = (-b + root) / (2 * a);
+    const discriminant = b * b - 4 * a * c;
+    if (discriminant < 0) return 0;
 
-        return 2;
-    }
+    const root: f64 = math.sqrt(discriminant);
+    buf[0] = (-b - root) / (2 * a);
+    buf[1] = (-b + root) / (2 * a);
 
-    pub fn localNormalAt(_: *const Sphere, object_point: Point) Vector {
-        return object_point.sub(Point.zero());
-    }
+    return 2;
+}
 
-    pub fn approxEq(self: *const Sphere, other: *const Sphere) bool {
-        return self.transform.approxEq(&other.transform) and
-            self.material.approxEq(other.material);
-    }
-};
+pub fn localNormalAt(_: *const Sphere, object_point: Point) Vector {
+    return object_point.sub(Point.zero());
+}
+
+pub fn approxEq(self: *const Sphere, other: *const Sphere) bool {
+    return self.transform.approxEq(&other.transform) and
+        self.material.approxEq(other.material);
+}
 
 test "A ray intersects a sphere at two points" {
     // Given

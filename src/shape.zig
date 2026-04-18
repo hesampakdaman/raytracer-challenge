@@ -10,7 +10,7 @@ const num = @import("num.zig");
 const Plane = @import("plane.zig").Plane;
 const Point = @import("Point.zig");
 const Ray = @import("ray.zig").Ray;
-const Sphere = @import("sphere.zig").Sphere;
+const Sphere = @import("Sphere.zig");
 const tsfm = @import("transformation.zig");
 const Vector = @import("Vector.zig");
 
@@ -269,7 +269,7 @@ test "A Sphere is a Shape" {
 }
 
 test "Chapter 5: Putting it together" {
-    const Canvas = @import("canvas.zig").Canvas;
+    const Canvas = @import("Canvas.zig");
     const Color = @import("Color.zig");
 
     const allocator = std.testing.allocator;
@@ -316,7 +316,7 @@ test "Chapter 5: Putting it together" {
 
 test "Chapter 6: Putting it together" {
     const PointLight = @import("light.zig").PointLight;
-    const Canvas = @import("canvas.zig").Canvas;
+    const Canvas = @import("Canvas.zig");
     const Color = @import("Color.zig");
 
     const allocator = std.testing.allocator;

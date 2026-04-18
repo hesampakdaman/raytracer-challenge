@@ -1,7 +1,7 @@
 const std = @import("std");
 const Io = std.Io;
 
-const Canvas = @import("canvas.zig").Canvas;
+const Canvas = @import("Canvas.zig");
 const Color = @import("Color.zig");
 const Point = @import("Point.zig");
 const Vector = @import("Vector.zig");

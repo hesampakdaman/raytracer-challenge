@@ -3,7 +3,7 @@ const math = std.math;
 const Allocator = std.mem.Allocator;
 const Io = std.Io;
 
-const Canvas = @import("canvas.zig").Canvas;
+const Canvas = @import("Canvas.zig");
 const Color = @import("Color.zig");
 const expect = @import("expect.zig");
 const Mat4 = @import("matrix.zig").Mat4;
@@ -18,78 +18,78 @@ const tsfm = @import("transformation.zig");
 const Vector = @import("Vector.zig");
 const World = @import("world.zig").World;
 
-pub const Camera = struct {
-    hsize: usize,
-    vsize: usize,
-    field_of_view: f64,
-    transform: Mat4,
-    half_width: f64,
-    half_height: f64,
-    pixel_size: f64,
+pub const Camera = @This();
 
-    pub fn init(hsize: usize, vsize: usize, fov: f64) Camera {
-        const half_view = math.tan(fov / 2.0);
-        const aspect =
-            @as(f64, @floatFromInt(hsize)) /
-            @as(f64, @floatFromInt(vsize));
+hsize: usize,
+vsize: usize,
+field_of_view: f64,
+transform: Mat4,
+half_width: f64,
+half_height: f64,
+pixel_size: f64,
 
-        const half_width, const half_height = if (aspect >= 1)
-            .{ half_view, half_view / aspect }
-        else
-            .{ half_view * aspect, half_view };
+pub fn init(hsize: usize, vsize: usize, fov: f64) Camera {
+    const half_view = math.tan(fov / 2.0);
+    const aspect =
+        @as(f64, @floatFromInt(hsize)) /
+        @as(f64, @floatFromInt(vsize));
 
-        const pixel_size =
-            (half_width * 2.0) /
-            @as(f64, @floatFromInt(hsize));
+    const half_width, const half_height = if (aspect >= 1)
+        .{ half_view, half_view / aspect }
+    else
+        .{ half_view * aspect, half_view };
 
-        return .{
-            .hsize = hsize,
-            .vsize = vsize,
-            .field_of_view = fov,
-            .transform = Mat4.identity(),
-            .half_width = half_width,
-            .half_height = half_height,
-            .pixel_size = pixel_size,
-        };
-    }
+    const pixel_size =
+        (half_width * 2.0) /
+        @as(f64, @floatFromInt(hsize));
 
-    pub fn rayForPixel(self: *const Camera, px: f64, py: f64) Ray {
-        // the offset from the edge of the canvas to the pixel's center
-        // e.g. px is in [0, 1, ..., vsize] and py is in [0, 1, ..., hsize]
-        // so that the center of the pixel is at (px+0.5, py+0.5).
-        const xoffset = (px + 0.5) * self.pixel_size;
-        const yoffset = (py + 0.5) * self.pixel_size;
+    return .{
+        .hsize = hsize,
+        .vsize = vsize,
+        .field_of_view = fov,
+        .transform = Mat4.identity(),
+        .half_width = half_width,
+        .half_height = half_height,
+        .pixel_size = pixel_size,
+    };
+}
 
-        // the untransformed coordinates of the pixel in the world space.
-        // (remember that the camera looks toward -z, so +x is to the *left*.)
-        const world_x = self.half_width - xoffset;
-        const world_y = self.half_height - yoffset;
+pub fn rayForPixel(self: *const Camera, px: f64, py: f64) Ray {
+    // the offset from the edge of the canvas to the pixel's center
+    // e.g. px is in [0, 1, ..., vsize] and py is in [0, 1, ..., hsize]
+    // so that the center of the pixel is at (px+0.5, py+0.5).
+    const xoffset = (px + 0.5) * self.pixel_size;
+    const yoffset = (py + 0.5) * self.pixel_size;
 
-        // using the camera matrix, transform the canvas point and the origin,
-        // and then compute the ray's direction vector.
-        // (remember that the canvas is at z=-1)
-        const inv = self.transform.inverse();
-        const pixel = inv.apply(Point.init(world_x, world_y, -1));
-        const origin = inv.apply(Point.zero());
-        const direction = pixel.sub(origin).normalize();
+    // the untransformed coordinates of the pixel in the world space.
+    // (remember that the camera looks toward -z, so +x is to the *left*.)
+    const world_x = self.half_width - xoffset;
+    const world_y = self.half_height - yoffset;
 
-        return Ray.init(origin, direction);
-    }
+    // using the camera matrix, transform the canvas point and the origin,
+    // and then compute the ray's direction vector.
+    // (remember that the canvas is at z=-1)
+    const inv = self.transform.inverse();
+    const pixel = inv.apply(Point.init(world_x, world_y, -1));
+    const origin = inv.apply(Point.zero());
+    const direction = pixel.sub(origin).normalize();
 
-    pub fn render(self: *const Camera, gpa: Allocator, world: *const World) !Canvas {
-        var image = try Canvas.init(gpa, self.hsize, self.vsize);
+    return Ray.init(origin, direction);
+}
 
-        for (0..self.vsize) |y| {
-            for (0..self.hsize) |x| {
-                const ray = self.rayForPixel(@floatFromInt(x), @floatFromInt(y));
-                const color = world.colorAt(&ray);
-                image.writePixel(x, y, color);
-            }
+pub fn render(self: *const Camera, gpa: Allocator, world: *const World) !Canvas {
+    var image = try Canvas.init(gpa, self.hsize, self.vsize);
+
+    for (0..self.vsize) |y| {
+        for (0..self.hsize) |x| {
+            const ray = self.rayForPixel(@floatFromInt(x), @floatFromInt(y));
+            const color = world.colorAt(&ray);
+            image.writePixel(x, y, color);
         }
-
-        return image;
     }
-};
+
+    return image;
+}
 
 test "Constructing a camera" {
     // Given
